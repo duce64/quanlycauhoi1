@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:http/http.dart' as http;
 import '../../util/constant.dart'; // Đảm bảo kPrimaryColor được định nghĩa ở đây
 
@@ -26,7 +27,7 @@ class _AddQuestionPackageScreenState extends State<AddQuestionPackageScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.52.91:3000/api/questions/add"),
+        Uri.parse("${AppConstants.baseUrl}/api/questions/add"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text.trim(),

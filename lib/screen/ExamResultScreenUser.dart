@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -41,7 +42,7 @@ class _UserExamResultScreenState extends State<UserExamResultScreen> {
       final userId = decoded['userId'];
 
       final response = await http.get(
-        Uri.parse('http://192.168.52.91:3000/api/results/by-user/$userId'),
+        Uri.parse('${AppConstants.baseUrl}/api/results/by-user/$userId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

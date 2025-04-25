@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EditTestScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _EditTestScreenState extends State<EditTestScreen> {
 
   Future<void> fetchPackages() async {
     try {
-      final res = await Dio().get('http://192.168.52.91:3000/api/questions');
+      final res = await Dio().get('${AppConstants.baseUrl}/api/questions');
       if (res.statusCode == 200) {
         setState(() {
           questionPackages = List<Map<String, dynamic>>.from(res.data);
@@ -65,7 +66,7 @@ class _EditTestScreenState extends State<EditTestScreen> {
     });
     try {
       final res = await Dio().get(
-        'http://192.168.52.91:3000/by-department',
+        '${AppConstants.baseUrl}/by-department',
         queryParameters: {'department': department},
       );
       if (res.statusCode == 200) {
@@ -95,7 +96,7 @@ class _EditTestScreenState extends State<EditTestScreen> {
 
     try {
       final res = await Dio().put(
-        'http://192.168.52.91:3000/api/exams/${widget.testData['_id']}',
+        '${AppConstants.baseUrl}/api/exams/${widget.testData['_id']}',
         data: {
           "title": titleController.text,
           "questionPackageId": selectedPackage,

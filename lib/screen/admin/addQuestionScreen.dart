@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterquiz/util/constant.dart';
@@ -99,7 +100,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
     saveCurrentQuestion();
 
     final url =
-        Uri.parse('http://192.168.52.91:3000/api/questions/add-questions');
+        Uri.parse('${AppConstants.baseUrl}/api/questions/add-questions');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode(questions.map((q) => q.toJson()).toList());
 

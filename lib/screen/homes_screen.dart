@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/animation/fade_animation.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
 import 'package:flutterquiz/provider/question_provider.dart';
 import 'package:flutterquiz/screen/QuestionPackageListScreenH.dart';
@@ -26,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userName = '';
   String _department = '';
   String _detail = '';
-
+  int unreadCount = 0;
   @override
   void initState() {
     super.initState();
@@ -73,13 +74,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final userId = decoded['userId'] ?? '';
 
       final response = await http.get(
-        Uri.parse('http://192.168.52.91:3000/api/notifications/user/$userId'),
+        Uri.parse('${AppConstants.baseUrl}/api/notifications/user/$userId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
         setState(() {
           _notifications = jsonDecode(response.body);
+          unreadCount =
+              _notifications.where((notif) => notif['isRead'] == false).length;
         });
       }
     } catch (e) {
@@ -123,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<List<Category>> fetchCategories() async {
     final response =
-        await http.get(Uri.parse('http://192.168.52.91:3000/api/categories'));
+        await http.get(Uri.parse('${AppConstants.baseUrl}/api/categories'));
 
     if (response.statusCode == 200) {
       List data = jsonDecode(response.body);
@@ -258,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         // ✅ Đánh dấu đã đọc
                         await http.put(
                           Uri.parse(
-                              'http://192.168.52.91:3000/api/notifications/${notif['_id']}/read'),
+                              '${AppConstants.baseUrl}/api/notifications/${notif['_id']}/read'),
                           headers: {'Authorization': 'Bearer $token'},
                         );
 
@@ -274,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         final checkRes = await http.get(
                           Uri.parse(
-                              'http://192.168.52.91:3000/api/results/check?userId=$userId&testId=${notif['_id']}'),
+                              '${AppConstants.baseUrl}/api/results/check?userId=$userId&testId=${notif['_id']}'),
                           headers: {'Authorization': 'Bearer $token'},
                         );
 
@@ -334,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               arguments: {
                                 'categoryId': notif['categoryId'],
                                 'questionId': notif['questionId'],
-                                'idTest': '${notif['_id']}',
+                                'idTest': '${notif['idTest']}',
                                 'isTest': true,
                               },
                             );
@@ -544,7 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           tooltip: 'Thông báo',
                           onPressed: _showNotifications,
                         ),
-                        if (_notifications.isNotEmpty)
+                        if (unreadCount > 0)
                           Positioned(
                             right: 6,
                             top: 6,
@@ -558,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               constraints: const BoxConstraints(
                                   minWidth: 18, minHeight: 18),
                               child: Text(
-                                '${_notifications.length}',
+                                '${unreadCount}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -45,7 +46,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
   Future<void> fetchQuestions() async {
     final dio = Dio();
     final url =
-        "http://192.168.52.91:3000/api/questions/package/${widget.questionId}";
+        "${AppConstants.baseUrl}/api/questions/package/${widget.questionId}";
 
     try {
       setState(() => isLoading = true);
@@ -149,7 +150,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
     print('Submitting result...${widget.idTest} ${widget.isTest}');
     try {
       await dio.post(
-        'http://192.168.52.91:3000/api/results/add',
+        '${AppConstants.baseUrl}/api/results/add',
         data: {
           "name": name,
           "score": score,

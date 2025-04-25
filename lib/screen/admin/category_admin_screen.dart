@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
@@ -25,7 +26,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
   Future<void> _loadCategories() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.52.91:3000/api/categories'),
+        Uri.parse('${AppConstants.baseUrl}/api/categories'),
       );
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
@@ -65,7 +66,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
 
     if (confirm == true) {
       final response = await http.delete(
-        Uri.parse('http://192.168.52.91:3000/api/categories/$id'),
+        Uri.parse('${AppConstants.baseUrl}/api/categories/$id'),
       );
 
       if (response.statusCode == 200) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/screen/admin/EditTestScreen.dart';
 import 'package:http/http.dart' as http;
 
@@ -30,7 +31,7 @@ class _CreatedTestListScreenState extends State<CreatedTestListScreen> {
   Future<void> _fetchCreatedTests() async {
     try {
       final response =
-          await http.get(Uri.parse("http://192.168.52.91:3000/api/exams"));
+          await http.get(Uri.parse("${AppConstants.baseUrl}/api/exams"));
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
@@ -51,7 +52,7 @@ class _CreatedTestListScreenState extends State<CreatedTestListScreen> {
 
   Future<void> _deleteTest(String id) async {
     final response =
-        await http.delete(Uri.parse("http://192.168.52.91:3000/api/exams/$id"));
+        await http.delete(Uri.parse("${AppConstants.baseUrl}/api/exams/$id"));
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(

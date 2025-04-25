@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -39,7 +40,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
 
   Future<void> fetchPackages() async {
     try {
-      final res = await Dio().get('http://192.168.52.91:3000/api/questions');
+      final res = await Dio().get('${AppConstants.baseUrl}/api/questions');
       if (res.statusCode == 200) {
         setState(() {
           questionPackages = res.data;
@@ -57,7 +58,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     });
     try {
       final res = await Dio().get(
-        'http://192.168.52.91:3000/by-department',
+        '${AppConstants.baseUrl}/by-department',
         queryParameters: {'department': department},
       );
       if (res.statusCode == 200) {
@@ -116,7 +117,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     print("Data: $data");
     try {
       final res = await Dio().post(
-        'http://192.168.52.91:3000/api/exams/create',
+        '${AppConstants.baseUrl}/api/exams/create',
         data: data,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );

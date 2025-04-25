@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:http/http.dart' as http;
 
 const kPrimaryColor = Color(0xFF1976D2);
@@ -28,7 +29,7 @@ class _ExamResultScreenState extends State<ExamResultScreen> {
   Future<void> _fetchResults() async {
     try {
       final response =
-          await http.get(Uri.parse('http://192.168.52.91:3000/api/results'));
+          await http.get(Uri.parse('${AppConstants.baseUrl}/api/results'));
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);

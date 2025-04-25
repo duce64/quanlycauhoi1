@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl:
-        'http://192.168.52.91:3000', // Đổi thành IP phù hợp nếu dùng real device
+        '${AppConstants.baseUrl}', // Đổi thành IP phù hợp nếu dùng real device
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
     headers: {

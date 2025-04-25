@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:http/http.dart' as http;
 
 const kPrimaryColor = Color(0xFF1976D2);
@@ -28,7 +29,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   Future<void> _fetchUsers() async {
     try {
       final response =
-          await http.get(Uri.parse('http://192.168.52.91:3000/getAllUser'));
+          await http.get(Uri.parse('${AppConstants.baseUrl}/getAllUser'));
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         setState(() {
@@ -196,7 +197,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   Future<void> _deleteUser(String userId) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://192.168.52.91:3000/delete/$userId'),
+        Uri.parse('${AppConstants.baseUrl}/delete/$userId'),
       );
 
       if (response.statusCode == 200) {
@@ -219,7 +220,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   Future<void> _updateUserRole(String userId, String newRole) async {
     try {
       final response = await http.put(
-        Uri.parse('http://192.168.52.91:3000/api/users/updateRole'),
+        Uri.parse('${AppConstants.baseUrl}/api/users/updateRole'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': userId, 'role': newRole}),
       );

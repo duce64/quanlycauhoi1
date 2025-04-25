@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:flutterquiz/screen/quiz_screen.dart';
 import 'package:flutterquiz/screen/quiz_screens.dart';
@@ -36,7 +37,7 @@ class _QuestionPackageListScreenState extends State<QuestionPackageListScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-            'http://192.168.52.91:3000/api/questions/by-category/${widget.categoryId}'),
+            '${AppConstants.baseUrl}/api/questions/by-category/${widget.categoryId}'),
       );
 
       if (res.statusCode == 200) {

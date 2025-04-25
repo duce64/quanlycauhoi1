@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/screen/ChangePasswordScreen.dart';
 import 'package:flutterquiz/screen/ExamResultScreenUser.dart';
+import 'package:flutterquiz/screen/UpdateProfileScreen.dart';
+import 'package:flutterquiz/screen/admin/AdminExamResultScreen.dart';
 import 'package:flutterquiz/screen/admin/CreatedTestListScreen.dart';
 import 'package:flutterquiz/screen/admin/admin_screen.dart';
 import 'package:flutterquiz/screen/category_screen.dart';
@@ -24,19 +27,24 @@ class _DashboardPageState extends State<DashboardPage>
   int? hoveredIndex;
 
   List<Widget> screens = [];
-
   final List<String> menuTitles = [
     'Trang chủ',
     'Quản trị',
     'Lịch sử thi',
-    'Bài kiểm tra đã tạo', // Mới thêm
+    'Bài kiểm tra đã tạo',
+    'Kết quả kiểm tra', // ✅ Thêm mục mới
+    'Cập nhật thông tin',
+    'Đổi mật khẩu',
   ];
 
   final List<IconData> menuIcons = [
     FontAwesomeIcons.house,
     FontAwesomeIcons.userGear,
     FontAwesomeIcons.clockRotateLeft,
-    FontAwesomeIcons.fileCircleCheck, // icon cho mục mới
+    FontAwesomeIcons.fileCircleCheck,
+    FontAwesomeIcons.chartColumn, // ✅ Icon cho "Kết quả kiểm tra"
+    FontAwesomeIcons.userPen,
+    FontAwesomeIcons.lock,
   ];
 
   @override
@@ -61,6 +69,9 @@ class _DashboardPageState extends State<DashboardPage>
             if (isAdmin) const AdminDashboardScreen(),
             const UserExamResultScreen(),
             const CreatedTestListScreen(),
+            if (isAdmin) const AdminExamResultScreen(), // ✅ Thêm dòng này
+            UpdateProfileScreen(), // NEW
+            ChangePasswordScreen(), // NEW
           ];
         });
       }
@@ -97,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage>
                 const SizedBox(height: 8),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: isAdmin ? 4 : 2,
+                    itemCount: isAdmin ? 7 : 4,
                     itemBuilder: (context, index) {
                       final title = menuTitles[index];
                       final icon = menuIcons[index];

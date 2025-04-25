@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterquiz/util/constant.dart';
@@ -42,7 +43,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.52.91:3000/api/categories/add');
+    final url = Uri.parse('${AppConstants.baseUrl}/api/categories/add');
     final body = {
       'name': title,
       'image': _base64Image,
