@@ -119,8 +119,7 @@ class _AdminExamResultScreenState extends State<AdminExamResultScreen> {
                             MaterialPageRoute(
                               builder: (_) => ExamDetailScreen(
                                 examId: '${exam.id}',
-                                title: 'Đề thi thử nghiệm',
-                                department: 'Phòng Công nghệ',
+                                title: '${exam.title}',
                               ),
                             ),
                           );

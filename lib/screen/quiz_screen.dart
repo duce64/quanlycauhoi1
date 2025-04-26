@@ -257,8 +257,8 @@ class _QuizPageState extends State<QuizPage> {
                                         widget.listQuestion.length - 1) {
                                       buildDialog(
                                         context,
-                                        "Finish?",
-                                        "Are you sure finish quiz?",
+                                        "Hoàn thành?",
+                                        "Bạn có chắc chắn muốn nộp bài không?",
                                         DialogType.success,
                                         () => Navigator.pushReplacement(
                                           context,
@@ -308,8 +308,13 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Future<bool> onBackPress() {
-    return buildDialog(context, "Warning!", 'Do you want to cancel this quiz? ',
-        DialogType.warning, () => Navigator.pop(context, true), () => null);
+    return buildDialog(
+        context,
+        "Cảnh báo !",
+        'Bạn có muốn huỷ bài thi này không?',
+        DialogType.warning,
+        () => Navigator.pop(context, true),
+        () => null);
   }
 }
 
