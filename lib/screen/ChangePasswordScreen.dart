@@ -87,73 +87,61 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kLightBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: IconThemeData(color: kItemSelectBottomNav),
-        title: Text(
-          '🔐 Đổi mật khẩu',
-          style: TextStyle(
-            color: kItemSelectBottomNav,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Center(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      )
-                    ],
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 700),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         "ĐỔI MẬT KHẨU",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 24),
                       TextField(
                         controller: _oldPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Mật khẩu hiện tại',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _newPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Mật khẩu mới',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _confirmPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Xác nhận mật khẩu mới',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -164,10 +152,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           icon: const Icon(Icons.lock_reset),
                           label: const Text("ĐỔI MẬT KHẨU"),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: kItemSelectBottomNav,
-                            minimumSize: const Size.fromHeight(48),
+                            backgroundColor: const Color(0xFF1E88E5),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

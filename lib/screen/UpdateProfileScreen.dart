@@ -5,9 +5,7 @@ import 'package:flutterquiz/util/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
-  const UpdateProfileScreen({
-    Key? key,
-  }) : super(key: key);
+  const UpdateProfileScreen({Key? key}) : super(key: key);
 
   @override
   State<UpdateProfileScreen> createState() => _UpdateProfileScreenState();
@@ -16,15 +14,15 @@ class UpdateProfileScreen extends StatefulWidget {
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final TextEditingController fullnameController = TextEditingController();
   final TextEditingController detailController = TextEditingController();
-  String? selectedDepartment;
+  String? email;
+  String? department;
+  bool isLoading = false;
 
   final List<String> departments = [
     'Ban Tham Mưu',
     'Ban Chính Trị',
     'Ban HC-KT',
   ];
-
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -42,7 +40,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       setState(() {
         fullnameController.text = decoded['fullname'] ?? '';
         detailController.text = decoded['detail'] ?? '';
-        selectedDepartment = decoded['department'];
+        department = decoded['department'];
+        email = decoded['email'];
       });
     }
   }
@@ -50,7 +49,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   Future<void> updateProfile() async {
     if (fullnameController.text.isEmpty ||
         detailController.text.isEmpty ||
-        selectedDepartment == null) {
+        department == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
       );
@@ -68,7 +67,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     final data = {
       "fullname": fullnameController.text,
       "detail": detailController.text,
-      "department": selectedDepartment
+      "department": department,
     };
 
     try {
@@ -83,10 +82,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cập nhật thông tin thành công')),
         );
-        // 🔄 Lưu lại token mới
         await prefs.setString('auth_token', res.data['token']);
       } else {
-        throw Exception("Lỗi cập nhật");
+        throw Exception('Lỗi cập nhật');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,87 +95,126 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     }
   }
 
+  Widget buildRow({required String label, required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+              width: 140,
+              child: Text(label,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87))),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kLightBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: IconThemeData(color: kItemSelectBottomNav),
-        title: Text(
-          "🧑‍💼 Cập nhật thông tin",
-          style: TextStyle(
-            color: kItemSelectBottomNav,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: Padding(
+      backgroundColor: Colors.grey[100],
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 600),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                )
-              ],
-            ),
+            constraints: const BoxConstraints(maxWidth: 800),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: fullnameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Họ và tên',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+                // Tài khoản
+                const Text('Tài khoản',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: detailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Chi tiết',
-                    border: OutlineInputBorder(),
-                  ),
+                buildRow(
+                  label: 'Email',
+                  child:
+                      Text(email ?? '', style: const TextStyle(fontSize: 14)),
                 ),
+                buildRow(
+                  label: 'Điện thoại',
+                  child: const Text('Chưa cập nhật',
+                      style: TextStyle(fontSize: 14)),
+                ),
+                buildRow(
+                  label: 'Mật khẩu',
+                  child:
+                      const Text('**********', style: TextStyle(fontSize: 14)),
+                ),
+                const Divider(height: 32, thickness: 1),
+
+                // Thông tin liên hệ
+                const Text('Thông tin liên hệ',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: selectedDepartment,
-                  items: departments
-                      .map((dep) => DropdownMenuItem(
-                            value: dep,
-                            child: Text(dep),
-                          ))
-                      .toList(),
-                  onChanged: (val) => setState(() {
-                    selectedDepartment = val;
-                  }),
-                  decoration: const InputDecoration(
-                    labelText: 'Phòng ban',
-                    border: OutlineInputBorder(),
+                buildRow(
+                  label: 'Họ và tên',
+                  child: TextField(
+                    controller: fullnameController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                buildRow(
+                  label: 'Chi tiết',
+                  child: TextField(
+                    controller: detailController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const Divider(height: 32, thickness: 1),
+
+                // Cài đặt khác
+                const Text('Cài đặt khác',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 16),
+                buildRow(
+                  label: 'Phòng ban',
+                  child: DropdownButtonFormField<String>(
+                    value: department,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: departments.map((dep) {
+                      return DropdownMenuItem<String>(
+                        value: dep,
+                        child: Text(dep),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        department = val;
+                      });
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Button cập nhật
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: isLoading ? null : updateProfile,
-                    icon: const Icon(Icons.save),
-                    label: const Text("Cập nhật"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kItemSelectBottomNav,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
+                    child: const Text('Cập nhật',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
-                ),
+                )
               ],
             ),
           ),

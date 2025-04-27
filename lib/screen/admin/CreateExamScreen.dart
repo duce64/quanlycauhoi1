@@ -3,8 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/util/constant.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateExamScreen extends StatefulWidget {
   const CreateExamScreen({Key? key}) : super(key: key);
@@ -84,7 +84,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     );
     if (picked != null) {
       setState(() {
-        deadlineController.text = picked.toIso8601String();
+        deadlineController.text = picked.toIso8601String().substring(0, 10);
       });
     }
   }
@@ -114,7 +114,6 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
       "department": selectedDepartment,
       "userId": creatorId,
     };
-    print("Data: $data");
     try {
       final res = await Dio().post(
         '${AppConstants.baseUrl}/api/exams/create',
@@ -137,23 +136,41 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     }
   }
 
+  InputDecoration customInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(fontSize: 14, color: Colors.black87),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.blueAccent),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWide = screenWidth >= 800;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFE9F1FB),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: IconThemeData(color: kItemSelectBottomNav),
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text(
           "Tạo bài kiểm tra",
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: kItemSelectBottomNav,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
       ),
@@ -161,7 +178,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
         padding: const EdgeInsets.all(24),
         child: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: const BoxConstraints(maxWidth: 720),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -171,14 +188,14 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                   color: Colors.black12,
                   blurRadius: 10,
                   offset: Offset(0, 4),
-                )
+                ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "THÊM BÀI KIỊM TRA",
+                  "Thông tin bài kiểm tra",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -188,16 +205,9 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                 const SizedBox(height: 24),
                 TextField(
                   controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Tiêu đề bài kiểm tra',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
+                  decoration: customInputDecoration('Tên bài kiểm tra'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: selectedDepartment,
                   items: departments
@@ -213,28 +223,22 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                     });
                     if (val != null) fetchUsersByDepartment(val);
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Chọn ban',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
+                  decoration: customInputDecoration('Chọn ban'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 isLoadingUsers
-                    ? const CircularProgressIndicator()
+                    ? const Center(child: CircularProgressIndicator())
                     : MultiSelectDialogField(
                         items: users
                             .map((user) =>
                                 MultiSelectItem(user['_id'], user['fullname']))
                             .toList(),
-                        title: const Text("Người cần kiểm tra"),
-                        buttonText: const Text("Chọn người cần kiểm tra"),
+                        title: const Text("Người kiểm tra"),
+                        buttonText: const Text("Chọn người kiểm tra"),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Color(0xFFE0E0E0)),
+                          color: Colors.white,
                         ),
                         listType: MultiSelectListType.LIST,
                         onConfirm: (values) {
@@ -245,9 +249,9 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                         },
                         chipDisplay: MultiSelectChipDisplay.none(),
                       ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 isLoadingPackages
-                    ? const CircularProgressIndicator()
+                    ? const Center(child: CircularProgressIndicator())
                     : DropdownButtonFormField<int>(
                         value: selectedPackage,
                         items: questionPackages
@@ -258,43 +262,34 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                             .toList(),
                         onChanged: (val) =>
                             setState(() => selectedPackage = val),
-                        decoration: InputDecoration(
-                          labelText: 'Chọn gói câu hỏi',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                        ),
+                        decoration: customInputDecoration('Chọn gói câu hỏi'),
                       ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 TextField(
                   controller: deadlineController,
                   readOnly: true,
                   onTap: () => selectDate(context),
-                  decoration: InputDecoration(
-                    labelText: 'Hạn chót',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: customInputDecoration('Ngày hết hạn').copyWith(
                     suffixIcon: const Icon(Icons.calendar_today),
-                    filled: true,
-                    fillColor: Colors.grey[100],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: createTest,
-                    icon: const Icon(Icons.send),
-                    label: const Text("Tạo bài kiểm tra"),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      backgroundColor: kItemSelectBottomNav,
+                      backgroundColor: Colors.blueAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Tạo bài kiểm tra",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
