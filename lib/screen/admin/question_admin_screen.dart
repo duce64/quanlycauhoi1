@@ -17,6 +17,9 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
   List<Category> _categories = [];
   bool _isLoading = true;
 
+  TextEditingController _searchController = TextEditingController();
+  String _searchKeyword = '';
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +48,14 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
     }
   }
 
+  List<Category> _filteredCategories() {
+    if (_searchKeyword.isEmpty) return _categories;
+    return _categories
+        .where((cat) =>
+            cat.name.toLowerCase().contains(_searchKeyword.toLowerCase()))
+        .toList();
+  }
+
   void _navigateToEdit(Category category) {
     Navigator.pushNamed(
       context,
@@ -56,82 +67,79 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE9F1FB),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         iconTheme: IconThemeData(color: kItemSelectBottomNav),
-        title: Text(
+        title: const Text(
           "Quản lý câu hỏi",
           style: TextStyle(
-            color: kItemSelectBottomNav,
             fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black87,
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                return GestureDetector(
-                  onTap: () => _navigateToEdit(category),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+      body: Column(
+        children: [
+          // Thanh tìm kiếm
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Nhập từ khoá',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchKeyword.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchKeyword = '');
+                              },
+                            )
+                          : null,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      border: const UnderlineInputBorder(),
                     ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor:
-                              kItemSelectBottomNav.withOpacity(0.1),
-                          backgroundImage:
-                              MemoryImage(base64Decode(category.image)),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                category.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF002856),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "ID: ${category.id}",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.chevron_right, color: Colors.grey)
-                      ],
-                    ),
+                    onChanged: (value) {
+                      setState(() => _searchKeyword = value);
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filteredCategories().length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final category = _filteredCategories()[index];
+                      return ListTile(
+                        onTap: () => _navigateToEdit(category),
+                        leading: const Icon(Icons.help_outline_rounded,
+                            color: Colors.deepPurple),
+                        title: Text(
+                          'Danh mục câu hỏi ${category.name}',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -40,6 +40,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
           ongoingTests =
               data.map<Map<String, dynamic>>((test) => _mapTest(test)).toList();
           isLoadingOngoing = false;
+          print('ongoingTests: $ongoingTests');
         });
       }
 
@@ -70,7 +71,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       'questions': 'Không rõ',
       'isPublic': true,
       'categoryId': test['categoryId'],
-      'questionId': test['questionId'],
+      'questionPackageId': test['questionPackageId'],
     };
   }
 
@@ -133,12 +134,15 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       );
 
       if (confirm == true) {
+        print('check ${test['categoryId']}');
+        print('check ${test['questionPackageId']}');
+        print('check ${test['_id']}');
         Navigator.pushNamed(
           context,
           'QuizScreenH',
           arguments: {
             'categoryId': test['categoryId'],
-            'questionId': test['questionId'],
+            'questionId': test['questionPackageId'],
             'idTest': test['_id'],
             'isTest': true,
           },

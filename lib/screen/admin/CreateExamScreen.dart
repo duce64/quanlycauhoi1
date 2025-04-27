@@ -21,6 +21,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
   List<dynamic> users = [];
   bool isLoadingPackages = true;
   bool isLoadingUsers = false;
+  int? selectCategoryId;
 
   int? selectedPackage;
   List<String> selectedUsers = [];
@@ -113,6 +114,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
       "expiredDate": deadlineController.text,
       "department": selectedDepartment,
       "userId": creatorId,
+      "categoryId": selectCategoryId,
     };
     try {
       final res = await Dio().post(
@@ -250,20 +252,38 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                         chipDisplay: MultiSelectChipDisplay.none(),
                       ),
                 const SizedBox(height: 20),
-                isLoadingPackages
-                    ? const Center(child: CircularProgressIndicator())
-                    : DropdownButtonFormField<int>(
-                        value: selectedPackage,
-                        items: questionPackages
-                            .map((pkg) => DropdownMenuItem<int>(
-                                  value: pkg['idQuestion'],
-                                  child: Text(pkg['name']),
-                                ))
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedPackage = val),
-                        decoration: customInputDecoration('Chọn gói câu hỏi'),
-                      ),
+                DropdownButtonFormField<int>(
+                  value: selectedPackage,
+                  items: questionPackages
+                      .map((pkg) => DropdownMenuItem<int>(
+                            value: pkg[
+                                'idQuestion'], // vẫn giữ value là idQuestion
+                            child: Text(pkg['name']),
+                          ))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      // Tìm object tương ứng từ danh sách
+                      final selectedPkg = questionPackages.firstWhere(
+                        (pkg) => pkg['idQuestion'] == val,
+                        orElse: () => null,
+                      );
+
+                      if (selectedPkg != null) {
+                        final categoryId = selectedPkg['idCategory'];
+                        print('Selected package id: $val');
+                        print('Corresponding categoryId: $categoryId');
+
+                        setState(() {
+                          selectedPackage = val;
+                          // Lưu categoryId nếu cần
+                          selectCategoryId = categoryId;
+                        });
+                      }
+                    }
+                  },
+                  decoration: customInputDecoration('Chọn gói câu hỏi'),
+                ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: deadlineController,
