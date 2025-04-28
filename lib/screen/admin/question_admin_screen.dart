@@ -367,6 +367,14 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
                                       Icons.folder_open_outlined,
                                       color: Colors.grey),
                                   onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AddQuestionScreens,
+                                      arguments: {
+                                        'categoryId': category.id,
+                                        'idQuestionPackage': pkg.idQuestion,
+                                      },
+                                    );
                                     // Navigator.pushNamed(
                                     //   context,
                                     //   QuestionPackageListScreens,
