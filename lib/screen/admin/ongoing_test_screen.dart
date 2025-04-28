@@ -70,6 +70,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       'end': 'Hạn: ${test['deadline'] ?? ''}',
       'duration': '${test['timeLimit'] ?? ''} phút',
       'questions': '${test['questionCount']} câu',
+      'numberQuestion': test['questionCount'] ?? 0,
       'isPublic': true,
       'categoryId': test['categoryId'],
       'questionPackageId': test['questionPackageId'],
@@ -137,10 +138,8 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       );
 
       if (confirm == true) {
-        print('check ${test['categoryId']}');
-        print('check ${test['questionPackageId']}');
-        print('check ${test['_id']}');
-        print('check ${test}');
+        print('check questionCount${test['numberQuestion']}');
+
         Navigator.pushNamed(
           context,
           'QuizScreenH',
@@ -151,6 +150,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
             'isTest': true,
             'timeLimitMinutes':
                 (test['timeLimit'] ?? 0), // phút x 60 thành giây
+            'numberQuestion': test['numberQuestion']
           },
         );
       }

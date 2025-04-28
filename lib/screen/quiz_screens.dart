@@ -18,7 +18,7 @@ class QuizPageApi extends StatefulWidget {
   final bool isTest;
   final String idTest;
   final int timeLimitMinutes;
-
+  final int? numberQuestion; // ✅ thêm tham số
   const QuizPageApi({
     Key? key,
     required this.categoryId,
@@ -26,6 +26,7 @@ class QuizPageApi extends StatefulWidget {
     required this.isTest,
     required this.idTest,
     required this.timeLimitMinutes,
+    this.numberQuestion, // ✅ thêm tham số
   }) : super(key: key);
 
   @override
@@ -72,6 +73,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
   }
 
   Future<void> fetchQuestions() async {
+    print('check  numberQuestion${widget.numberQuestion}');
     final dio = Dio();
     final url =
         "${AppConstants.baseUrl}/api/questions/package/${widget.questionId}";
@@ -83,6 +85,13 @@ class _QuizPageApiState extends State<QuizPageApi> {
       if (res.statusCode == 200) {
         final List<dynamic> results = res.data['result'];
         listQuestion = results.map((e) => Question.fromJson(e)).toList();
+
+        // ✅ Nếu có numberQuestion và số lượng ít hơn danh sách, thì random chọn
+        if (widget.numberQuestion != null &&
+            widget.numberQuestion! < listQuestion.length) {
+          listQuestion.shuffle();
+          listQuestion = listQuestion.take(widget.numberQuestion!).toList();
+        }
 
         for (int i = 0; i < listQuestion.length; i++) {
           final q = listQuestion[i];
@@ -101,12 +110,11 @@ class _QuizPageApiState extends State<QuizPageApi> {
           isLoading = false;
         });
       }
-    } on DioError catch (e) {
+    } catch (e) {
       setState(() {
-        error = 'Có lỗi xảy ra!';
+        error = 'Lỗi kết nối: $e';
         isLoading = false;
       });
-      print(e.message);
     }
   }
 

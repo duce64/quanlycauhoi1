@@ -117,6 +117,7 @@ class Routerr {
                   idTest: args['idTest']!,
                   isTest: args['isTest']!,
                   timeLimitMinutes: args['timeLimitMinutes']!,
+                  numberQuestion: args['numberQuestion'] ?? null,
                   // Pass the list of questions here
                 ));
       case UserExamResultScreenss:

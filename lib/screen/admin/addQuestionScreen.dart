@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/question.dart';
+import 'package:flutterquiz/screen/admin/preview_question_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutterquiz/util/constant.dart';
 
@@ -146,13 +147,22 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE9F1FB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: const Text(
-          'Thêm câu hỏi',
-          style: TextStyle(color: kTitleColor, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: kTitleColor),
+        title: Text('Thêm câu hỏi'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.remove_red_eye),
+            onPressed: () {
+              saveCurrentQuestion(); // Lưu câu hỏi hiện tại trước khi xem trước
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PreviewQuestionScreen(questions: questions),
+                ),
+              );
+            },
+          )
+        ],
       ),
       body: Center(
         child: Container(
