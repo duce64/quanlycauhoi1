@@ -232,6 +232,8 @@ class _ManageQuestionScreenState extends State<HomesScreen> {
                                         'questionId': pkg.idQuestion,
                                         'idTest': 'null',
                                         'isTest': false,
+                                        'timeLimitMinutes':
+                                            (999 ?? 0), // phút x 60 thành giây
                                       },
                                     );
                                   },
