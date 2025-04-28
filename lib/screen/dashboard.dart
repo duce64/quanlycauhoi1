@@ -29,7 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
   List<dynamic> _notifications = [];
   final List<String> menuTitles = [
     'Đang diễn ra',
-    'Trang chủ',
+    'Luyện tập ',
     'Lịch sử',
     'Quản lý câu hỏi', // ✅ NEW
     'Quản lý danh mục', // ✅ NEW
@@ -84,7 +84,7 @@ class _DashboardPageState extends State<DashboardPage> {
           isAdmin = role == 'admin';
           screens = [
             OngoingTestScreen(),
-            HomeScreen(),
+            HomesScreen(),
             const UserExamResultScreen(),
 
             const ManageQuestionScreen(), // ✅ Màn quản lý câu hỏi

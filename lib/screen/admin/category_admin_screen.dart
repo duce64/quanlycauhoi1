@@ -156,9 +156,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pushNamed(context, AddCategoryScreens).then((_) {
-                      _loadCategories();
-                    });
+                    _showAddCategoryDialog();
                   },
                   icon: const Icon(Icons.add),
                   label: const Text("Tạo danh mục"),
@@ -324,6 +322,119 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Cập nhật thất bại")),
+                );
+              }
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCategoryDialog() {
+    final TextEditingController _nameController = TextEditingController();
+    String _imageBase64 = '';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thêm danh mục mới'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Tên danh mục',
+                    style: TextStyle(fontSize: 14, color: Colors.grey)),
+              ),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.list_alt),
+                  border: UnderlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () async {
+                  final picked = await ImagePicker().pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 60,
+                  );
+                  if (picked != null) {
+                    final bytes = await picked.readAsBytes();
+                    setState(() {
+                      _imageBase64 = base64Encode(bytes);
+                    });
+                  }
+                },
+                child: Column(
+                  children: [
+                    const Text(
+                      'Ảnh đại diện',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: _imageBase64.isNotEmpty
+                          ? Image.memory(
+                              base64Decode(_imageBase64),
+                              fit: BoxFit.cover,
+                            )
+                          : const Icon(Icons.image, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+            ),
+            onPressed: () async {
+              if (_nameController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Vui lòng nhập tên danh mục")),
+                );
+                return;
+              }
+
+              final newCategory = {
+                'name': _nameController.text.trim(),
+                'image': _imageBase64,
+              };
+
+              final response = await http.post(
+                Uri.parse('${AppConstants.baseUrl}/api/categories/add'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode(newCategory),
+              );
+
+              if (response.statusCode == 201) {
+                Navigator.pop(context);
+                _loadCategories();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Thêm danh mục thành công")),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Thêm danh mục thất bại")),
                 );
               }
             },

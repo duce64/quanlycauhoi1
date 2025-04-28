@@ -59,39 +59,6 @@ class _AdminExamResultScreenState extends State<AdminExamResultScreen> {
         color: const Color(0xFFE9F1FB),
         child: Column(
           children: [
-            // Header giống Home
-            Container(
-              height: 70,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              color: Colors.white,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Xin chào, $_userName',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: kItemSelectBottomNav,
-                        ),
-                      ),
-                      Text(
-                        'Phòng ban: $_department | Vai trò: $_role',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  const Icon(Icons.admin_panel_settings,
-                      color: Colors.teal, size: 28),
-                ],
-              ),
-            ),
-
             // Body
             Expanded(
               child: FutureBuilder<List<Exam>>(

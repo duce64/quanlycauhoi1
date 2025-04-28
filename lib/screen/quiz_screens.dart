@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +17,15 @@ class QuizPageApi extends StatefulWidget {
   final int questionId;
   final bool isTest;
   final String idTest;
+  final int timeLimitMinutes;
+
   const QuizPageApi({
     Key? key,
     required this.categoryId,
     required this.questionId,
     required this.isTest,
     required this.idTest,
+    required this.timeLimitMinutes,
   }) : super(key: key);
 
   @override
@@ -37,10 +41,34 @@ class _QuizPageApiState extends State<QuizPageApi> {
   Map<int, List<String>> shuffledOptions = {};
   final unescape = HtmlUnescape();
 
+  late Timer _timer;
+  late int _remainingSeconds;
+
   @override
   void initState() {
     super.initState();
     fetchQuestions();
+    _remainingSeconds = widget.timeLimitMinutes * 60;
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        _timer.cancel();
+        _submitWhenTimeOut();
+      }
+    });
+  }
+
+  String get formattedTime {
+    final minutes = _remainingSeconds ~/ 60;
+    final seconds = _remainingSeconds % 60;
+    return "$minutes:${seconds.toString().padLeft(2, '0')}";
   }
 
   Future<void> fetchQuestions() async {
@@ -69,13 +97,13 @@ class _QuizPageApiState extends State<QuizPageApi> {
         setState(() => isLoading = false);
       } else {
         setState(() {
-          error = 'Failed to load questions';
+          error = 'Tải câu hỏi thất bại';
           isLoading = false;
         });
       }
     } on DioError catch (e) {
       setState(() {
-        error = 'Something went wrong!';
+        error = 'Có lỗi xảy ra!';
         isLoading = false;
       });
       print(e.message);
@@ -90,18 +118,19 @@ class _QuizPageApiState extends State<QuizPageApi> {
 
   void nextOrSubmit() async {
     if (answer[currentIndex] == null) {
-      SnackBars.buildMessage(context, "Please choose an answer!");
+      SnackBars.buildMessage(context, "Vui lòng chọn đáp án!");
       return;
     }
 
     if (currentIndex == listQuestion.length - 1) {
       buildDialog(
         context,
-        "Finish?",
-        "Are you sure you want to finish the quiz?",
+        "Hoàn thành?",
+        "Bạn chắc chắn muốn kết thúc bài thi?",
         DialogType.success,
         () async {
           await submitExamResult();
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -128,13 +157,13 @@ class _QuizPageApiState extends State<QuizPageApi> {
     if (token == null) return;
 
     final parts = token.split('.');
-    String name = 'Unknown';
+    String name = 'Không rõ';
     String userId = '';
     if (parts.length == 3) {
       final payload = base64Url.normalize(parts[1]);
       final decoded = jsonDecode(utf8.decode(base64Url.decode(payload)));
-      name = decoded['name'] ?? 'Unknown';
-      userId = decoded['userId'] ?? ''; // phải là ObjectId từ backend
+      name = decoded['name'] ?? 'Không rõ';
+      userId = decoded['userId'] ?? '';
     }
 
     int score = 0;
@@ -144,10 +173,9 @@ class _QuizPageApiState extends State<QuizPageApi> {
       }
     }
 
-    final status = score >= 50 ? 'Passed' : 'Failed';
+    final status = score >= 50 ? 'Đạt' : 'Không đạt';
 
     final dio = Dio();
-    print('Submitting result...${widget.idTest} ${widget.isTest}');
     try {
       await dio.post(
         '${AppConstants.baseUrl}/api/results/add',
@@ -167,8 +195,72 @@ class _QuizPageApiState extends State<QuizPageApi> {
         }),
       );
     } catch (e) {
-      print("Submit error: $e");
+      print("Lỗi nộp bài: $e");
     }
+  }
+
+  void _submitWhenTimeOut() async {
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: const Text("Hết giờ"),
+          content: const Text("Bài thi sẽ được tự động nộp."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    bool submitSuccess = false;
+    int retryCount = 0;
+
+    while (!submitSuccess && retryCount < 3) {
+      try {
+        await submitExamResult();
+        submitSuccess = true;
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= 3) {
+          if (mounted) {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content:
+                    Text("Nộp bài thất bại. Vui lòng kiểm tra kết nối mạng."),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizFinishPage(
+          title: listQuestion.isNotEmpty
+              ? listQuestion[0].category ?? ''
+              : 'Bài thi',
+          answer: answer,
+          listQuestion: listQuestion,
+        ),
+      ),
+    );
   }
 
   void changeQuestion(int index) {
@@ -178,10 +270,16 @@ class _QuizPageApiState extends State<QuizPageApi> {
   }
 
   @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currentQuestionText = listQuestion.isNotEmpty
-        ? listQuestion[currentIndex].question ?? 'Quiz'
-        : 'Quiz';
+        ? listQuestion[currentIndex].question ?? 'Bài thi'
+        : 'Bài thi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFE9F1FB),
@@ -221,6 +319,25 @@ class _QuizPageApiState extends State<QuizPageApi> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.redAccent, width: 2),
+                  ),
+                  child: Text(
+                    formattedTime,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                )
               ],
             ),
           ),
@@ -256,7 +373,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Question ${currentIndex + 1} of ${listQuestion.length}",
+              "Câu ${currentIndex + 1} trên ${listQuestion.length}",
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -304,12 +421,14 @@ class _QuizPageApiState extends State<QuizPageApi> {
                 if (currentIndex > 0)
                   ElevatedButton(
                     onPressed: () => changeQuestion(currentIndex - 1),
-                    child: const Text("Previous"),
+                    child: const Text("Trước"),
                   ),
                 ElevatedButton(
                   onPressed: nextOrSubmit,
                   child: Text(
-                    currentIndex == listQuestion.length - 1 ? "Submit" : "Next",
+                    currentIndex == listQuestion.length - 1
+                        ? "Nộp bài"
+                        : "Tiếp theo",
                   ),
                 ),
               ],

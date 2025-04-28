@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:flutterquiz/screen/quiz_screen.dart';
-import 'package:flutterquiz/screen/quiz_screens.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
@@ -108,6 +107,81 @@ class _QuestionPackageListScreenState extends State<QuestionPackageListScreen> {
     );
   }
 
+  Future<void> _showAddPackageDialog() async {
+    final TextEditingController _nameController = TextEditingController();
+    final TextEditingController _idController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // Prevent dismiss by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Thêm gói câu hỏi'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tên gói câu hỏi',
+                  ),
+                ),
+                TextField(
+                  controller: _idController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mã gói câu hỏi',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Thêm'),
+              onPressed: () async {
+                // Gửi yêu cầu API thêm gói câu hỏi
+                final name = _nameController.text.trim();
+                final idQuestion = _idController.text.trim();
+
+                if (name.isNotEmpty && idQuestion.isNotEmpty) {
+                  try {
+                    final response = await http.post(
+                      Uri.parse('${AppConstants.baseUrl}/api/questions'),
+                      headers: <String, String>{
+                        'Content-Type': 'application/json; charset=UTF-8',
+                      },
+                      body: jsonEncode({
+                        'categoryId': widget.categoryId,
+                        'name': name,
+                        'idQuestion': idQuestion,
+                      }),
+                    );
+
+                    if (response.statusCode == 201) {
+                      // Thêm thành công, load lại gói câu hỏi
+                      _fetchPackages();
+                      Navigator.of(context).pop();
+                    } else {
+                      throw Exception('Lỗi thêm gói câu hỏi');
+                    }
+                  } catch (e) {
+                    print('Lỗi khi thêm gói câu hỏi: $e');
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeColor = Color(0xFF002856);
@@ -123,6 +197,13 @@ class _QuestionPackageListScreenState extends State<QuestionPackageListScreen> {
           "📦 Gói câu hỏi - ${widget.categoryName}",
           style: TextStyle(color: themeColor, fontWeight: FontWeight.w600),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add, color: themeColor),
+            onPressed:
+                _showAddPackageDialog, // Hiển thị dialog khi bấm nút thêm
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(
@@ -132,7 +213,7 @@ class _QuestionPackageListScreenState extends State<QuestionPackageListScreen> {
                   CircularProgressIndicator(color: kItemSelectBottomNav),
                   SizedBox(height: 16),
                   Text("Đang tải dữ liệu...",
-                      style: TextStyle(color: Colors.grey[700]))
+                      style: TextStyle(color: Colors.grey[700])),
                 ],
               ),
             )

@@ -16,16 +16,21 @@ class CreateExamScreen extends StatefulWidget {
 class _CreateExamScreenState extends State<CreateExamScreen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController deadlineController = TextEditingController();
+  final TextEditingController durationController =
+      TextEditingController(); // thời gian làm bài
+  final TextEditingController questionCountController =
+      TextEditingController(); // số lượng câu hỏi
 
   List<dynamic> questionPackages = [];
   List<dynamic> users = [];
   bool isLoadingPackages = true;
   bool isLoadingUsers = false;
   int? selectCategoryId;
-
   int? selectedPackage;
   List<String> selectedUsers = [];
   String? selectedDepartment;
+
+  int totalQuestions = 0; // Tổng số câu hỏi theo category
 
   final List<String> departments = [
     'Ban Tham Mưu',
@@ -76,6 +81,20 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     }
   }
 
+  Future<void> fetchTotalQuestions(int categoryId) async {
+    try {
+      final res = await Dio()
+          .get('${AppConstants.baseUrl}/api/questions/by-category/$categoryId');
+      if (res.statusCode == 200) {
+        setState(() {
+          totalQuestions = res.data.length;
+        });
+      }
+    } catch (e) {
+      print('Lỗi khi lấy tổng câu hỏi: $e');
+    }
+  }
+
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -95,7 +114,22 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
         selectedPackage == null ||
         selectedUsers.isEmpty ||
         deadlineController.text.isEmpty ||
-        selectedDepartment == null) return;
+        selectedDepartment == null ||
+        questionCountController.text.isEmpty ||
+        durationController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
+      );
+      return;
+    }
+
+    final int questionCount = int.tryParse(questionCountController.text) ?? 0;
+    if (questionCount <= 0 || questionCount > totalQuestions) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Số lượng câu hỏi không hợp lệ')),
+      );
+      return;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -115,6 +149,9 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
       "department": selectedDepartment,
       "userId": creatorId,
       "categoryId": selectCategoryId,
+      "questionCount": questionCount,
+      "timeLimit":
+          int.tryParse(durationController.text) ?? 0, // thêm thời gian làm bài
     };
     try {
       final res = await Dio().post(
@@ -230,40 +267,35 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                 const SizedBox(height: 20),
                 isLoadingUsers
                     ? const Center(child: CircularProgressIndicator())
-                    : MultiSelectDialogField(
-                        items: users
-                            .map((user) =>
-                                MultiSelectItem(user['_id'], user['fullname']))
-                            .toList(),
-                        title: const Text("Người kiểm tra"),
-                        buttonText: const Text("Chọn người kiểm tra"),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Color(0xFFE0E0E0)),
-                          color: Colors.white,
+                    : ElevatedButton(
+                        onPressed: openUserSelectDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          side: const BorderSide(color: Color(0xFFE0E0E0)),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        listType: MultiSelectListType.LIST,
-                        onConfirm: (values) {
-                          setState(() {
-                            selectedUsers =
-                                values.map((e) => e.toString()).toList();
-                          });
-                        },
-                        chipDisplay: MultiSelectChipDisplay.none(),
+                        child: Text(
+                          selectedUsers.isEmpty
+                              ? "Chọn người kiểm tra"
+                              : "Đã chọn ${selectedUsers.length} người",
+                        ),
                       ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<int>(
                   value: selectedPackage,
                   items: questionPackages
                       .map((pkg) => DropdownMenuItem<int>(
-                            value: pkg[
-                                'idQuestion'], // vẫn giữ value là idQuestion
+                            value: pkg['idQuestion'],
                             child: Text(pkg['name']),
                           ))
                       .toList(),
-                  onChanged: (val) {
+                  onChanged: (val) async {
                     if (val != null) {
-                      // Tìm object tương ứng từ danh sách
                       final selectedPkg = questionPackages.firstWhere(
                         (pkg) => pkg['idQuestion'] == val,
                         orElse: () => null,
@@ -271,18 +303,43 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
 
                       if (selectedPkg != null) {
                         final categoryId = selectedPkg['idCategory'];
-                        print('Selected package id: $val');
-                        print('Corresponding categoryId: $categoryId');
-
                         setState(() {
                           selectedPackage = val;
-                          // Lưu categoryId nếu cần
                           selectCategoryId = categoryId;
                         });
+
+                        await fetchTotalQuestions(categoryId);
                       }
                     }
                   },
                   decoration: customInputDecoration('Chọn gói câu hỏi'),
+                ),
+                if (totalQuestions > 0) ...[
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: questionCountController,
+                    keyboardType: TextInputType.number,
+                    decoration: customInputDecoration(
+                        'Số lượng câu hỏi (tối đa $totalQuestions)'),
+                    onChanged: (value) {
+                      int val = int.tryParse(value) ?? 0;
+                      if (val > totalQuestions) {
+                        questionCountController.text =
+                            totalQuestions.toString();
+                        questionCountController.selection =
+                            TextSelection.fromPosition(
+                          TextPosition(
+                              offset: questionCountController.text.length),
+                        );
+                      }
+                    },
+                  ),
+                ],
+                const SizedBox(height: 20),
+                TextField(
+                  controller: durationController,
+                  keyboardType: TextInputType.number,
+                  decoration: customInputDecoration('Thời gian làm bài (phút)'),
                 ),
                 const SizedBox(height: 20),
                 TextField(
@@ -320,5 +377,86 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
         ),
       ),
     );
+  }
+
+  void openUserSelectDialog() async {
+    final List<String> tempSelectedUsers = List.from(selectedUsers);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        bool isSelectAll = tempSelectedUsers.length == users.length;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Chọn người kiểm tra"),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CheckboxListTile(
+                      title: const Text("Chọn tất cả"),
+                      value: isSelectAll,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            tempSelectedUsers.clear();
+                            tempSelectedUsers
+                                .addAll(users.map((u) => u['_id']));
+                          } else {
+                            tempSelectedUsers.clear();
+                          }
+                          isSelectAll = value ?? false;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: users.map<Widget>((user) {
+                          return CheckboxListTile(
+                            title: Text(user['fullname']),
+                            value: tempSelectedUsers.contains(user['_id']),
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  tempSelectedUsers.add(user['_id']);
+                                } else {
+                                  tempSelectedUsers.remove(user['_id']);
+                                }
+                                isSelectAll =
+                                    tempSelectedUsers.length == users.length;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Hủy"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedUsers = List.from(tempSelectedUsers);
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Xác nhận"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    setState(() {});
   }
 }

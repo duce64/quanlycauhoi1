@@ -116,6 +116,7 @@ class Routerr {
                   questionId: args['questionId']!,
                   idTest: args['idTest']!,
                   isTest: args['isTest']!,
+                  timeLimitMinutes: args['timeLimitMinutes']!,
                   // Pass the list of questions here
                 ));
       case UserExamResultScreenss:

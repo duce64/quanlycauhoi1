@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
+import 'package:flutterquiz/screen/quiz_screens.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,11 +68,12 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       'title': test['title'] ?? '',
       'start': 'N/A',
       'end': 'Hạn: ${test['deadline'] ?? ''}',
-      'duration': 'Không rõ',
-      'questions': 'Không rõ',
+      'duration': '${test['timeLimit'] ?? ''} phút',
+      'questions': '${test['questionCount']} câu',
       'isPublic': true,
       'categoryId': test['categoryId'],
       'questionPackageId': test['questionPackageId'],
+      'timeLimit': test['timeLimit'],
     };
   }
 
@@ -90,6 +92,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
     );
 
     final checkData = jsonDecode(checkRes.body);
+    print('checkData: $checkData');
 
     if (checkRes.statusCode == 200 &&
         checkData['hasTaken'] == false &&
@@ -137,6 +140,7 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
         print('check ${test['categoryId']}');
         print('check ${test['questionPackageId']}');
         print('check ${test['_id']}');
+        print('check ${test}');
         Navigator.pushNamed(
           context,
           'QuizScreenH',
@@ -145,6 +149,8 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
             'questionId': test['questionPackageId'],
             'idTest': test['_id'],
             'isTest': true,
+            'timeLimitMinutes':
+                (test['timeLimit'] ?? 0), // phút x 60 thành giây
           },
         );
       }
@@ -225,7 +231,13 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
         ),
         onPressed: () {
           // TODO: điều hướng sang trang Tạo bài kiểm tra
-          Navigator.pushNamed(context, CreateExamScreens);
+          Navigator.pushNamed(context, CreateExamScreens).then(
+            (value) {
+              if (value == true) {
+                fetchTests();
+              }
+            },
+          );
         },
         icon: const Icon(Icons.add, size: 16, color: Colors.white),
         label: const Text("Tạo bài kiểm tra",

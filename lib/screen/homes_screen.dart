@@ -1,280 +1,249 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutterquiz/animation/fade_animation.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
-import 'package:flutterquiz/provider/question_provider.dart';
-import 'package:flutterquiz/screen/QuestionPackageListScreenH.dart';
-import 'package:flutterquiz/screen/quiz_bottomsheet.dart';
+import 'package:flutterquiz/model/question_package.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
-import 'package:flutterquiz/widget/card.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'dart:convert' show base64Url, base64Decode;
-import 'dart:async';
 
-class HomeScreen extends StatefulWidget {
+class HomesScreen extends StatefulWidget {
+  const HomesScreen({Key? key}) : super(key: key);
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomesScreen> createState() => _ManageQuestionScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ManageQuestionScreenState extends State<HomesScreen> {
   List<Category> _categories = [];
-  List<dynamic> _notifications = [];
+  Map<int, List<QuestionPackage>> _questionPackagesByCategory = {};
+  Set<int> _expandedCategoryIds = {};
+
   bool _isLoading = true;
-  String _userName = '';
-  String _department = '';
-  String _detail = '';
-  int unreadCount = 0;
+  TextEditingController _searchController = TextEditingController();
+  String _searchKeyword = '';
+
   @override
   void initState() {
     super.initState();
-    _loadUserFromToken();
     _loadCategories();
-    _loadNotifications();
-    Provider.of<QuestionProvider>(context, listen: false).initValue();
-  }
-
-  Future<void> _loadUserFromToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-
-    if (token != null) {
-      final parts = token.split('.');
-      if (parts.length == 3) {
-        final payload = base64Url.normalize(parts[1]);
-        final decoded = jsonDecode(utf8.decode(base64Url.decode(payload)));
-
-        final exp = decoded['exp'];
-        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        if (exp != null && exp < now) {
-          await _logoutExpired();
-          return;
-        }
-
-        setState(() {
-          _userName = decoded['fullname'] ?? '';
-          _department = decoded['department'] ?? '';
-          _detail = decoded['role'] ?? '';
-        });
-      }
-    }
-  }
-
-  Future<void> _loadNotifications() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-      if (token == null) return;
-
-      final payload = base64Url.normalize(token.split('.')[1]);
-      final decoded = jsonDecode(utf8.decode(base64Url.decode(payload)));
-      final userId = decoded['userId'] ?? '';
-
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/api/notifications/user/$userId'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _notifications = jsonDecode(response.body);
-          unreadCount =
-              _notifications.where((notif) => notif['isRead'] == false).length;
-        });
-      }
-    } catch (e) {
-      print("Lỗi khi tải thông báo: $e");
-    }
-  }
-
-  Future<void> _logoutExpired() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    Navigator.of(context)
-        .pushNamedAndRemoveUntil(LoginScreen, (route) => false);
-  }
-
-  Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Xác nhận đăng xuất'),
-        content: Text('Bạn có chắc chắn muốn đăng xuất không?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Huỷ'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Đăng xuất'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('auth_token');
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(LoginScreen, (route) => false);
-    }
-  }
-
-  Future<List<Category>> fetchCategories() async {
-    final response =
-        await http.get(Uri.parse('${AppConstants.baseUrl}/api/categories'));
-
-    if (response.statusCode == 200) {
-      List data = jsonDecode(response.body);
-      return data.map((e) => Category.fromJson(e)).toList();
-    } else {
-      throw Exception("Failed to load categories");
-    }
   }
 
   Future<void> _loadCategories() async {
     try {
-      List<Category> fetched = await fetchCategories();
-      setState(() {
-        _categories = fetched;
-        _isLoading = false;
-      });
+      final response =
+          await http.get(Uri.parse('${AppConstants.baseUrl}/api/categories'));
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          _categories = data.map((e) => Category.fromJson(e)).toList();
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load categories');
+      }
     } catch (e) {
-      print("Lỗi khi tải category: $e");
+      print('Lỗi khi tải category: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  Widget _buildStyledItem(Category category) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: kItemSelectBottomNav.withOpacity(0.1),
-            backgroundImage: MemoryImage(base64Decode(category.image)),
-            radius: 28,
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category.name,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF002856),
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "Mã danh mục: ${category.id}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey[500])
-        ],
-      ),
-    );
+  Future<void> _fetchQuestionPackages(int categoryId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${AppConstants.baseUrl}/api/questions/by-category/$categoryId'),
+      );
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          _questionPackagesByCategory[categoryId] =
+              data.map((e) => QuestionPackage.fromJson(e)).toList();
+        });
+      } else {
+        print('Lỗi khi load gói câu hỏi');
+      }
+    } catch (e) {
+      print('Lỗi kết nối: $e');
+    }
+  }
+
+  List<Category> _filteredCategories() {
+    // Filter categories and question packages based on search keyword
+    return _categories.where((category) {
+      final isCategoryMatch =
+          category.name.toLowerCase().contains(_searchKeyword.toLowerCase());
+
+      // Filter question packages based on the search keyword
+      final questionPackages = _questionPackagesByCategory[category.id] ?? [];
+      final filteredPackages = questionPackages.where((pkg) {
+        return pkg.name.toLowerCase().contains(_searchKeyword.toLowerCase());
+      }).toList();
+
+      // Show category if it matches or if it has matching question packages
+      return isCategoryMatch || filteredPackages.isNotEmpty;
+    }).toList();
+  }
+
+  Widget _highlightText(String text, String keyword) {
+    if (keyword.isEmpty) return Text(text);
+
+    final lowerText = text.toLowerCase();
+    final lowerKeyword = keyword.toLowerCase();
+
+    if (!lowerText.contains(lowerKeyword)) {
+      return Text(text);
+    }
+
+    final spans = <TextSpan>[];
+    int start = 0;
+
+    while (true) {
+      final index = lowerText.indexOf(lowerKeyword, start);
+      if (index < 0) {
+        spans.add(TextSpan(text: text.substring(start)));
+        break;
+      }
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + keyword.length),
+        style: const TextStyle(
+          backgroundColor: Colors.yellow,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      start = index + keyword.length;
+    }
+
+    return RichText(
+        text: TextSpan(
+            style: const TextStyle(color: Colors.black), children: spans));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-      width: double.infinity,
-      color: Color(0xFFE9F1FB),
-      child: Column(
-        children: <Widget>[
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Thanh tìm kiếm
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm theo tên gói câu hỏi',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchKeyword.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchKeyword = '');
+                              },
+                            )
+                          : null,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      border: const UnderlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() => _searchKeyword = value);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: _isLoading
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            color: kItemSelectBottomNav,
-                            strokeWidth: 3.5,
-                          ),
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filteredCategories().length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final category = _filteredCategories()[index];
+                      final isExpanded =
+                          _expandedCategoryIds.contains(category.id);
+                      final allPackages =
+                          _questionPackagesByCategory[category.id] ?? [];
+
+                      // Filtered packages based on the search keyword
+                      final filteredPackages = allPackages
+                          .where((pkg) => pkg.name
+                              .toLowerCase()
+                              .contains(_searchKeyword.toLowerCase()))
+                          .toList();
+
+                      return ExpansionTile(
+                        initiallyExpanded: isExpanded,
+                        leading: const Icon(Icons.help_outline_rounded,
+                            color: Colors.deepPurple),
+                        title: Text(
+                          category.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        SizedBox(height: 16),
-                        Text(
-                          "Đang tải dữ liệu...",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.only(top: 10),
-                    itemCount: _categories.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => QuestionPackageListScreen(
-                                categoryId: _categories[index].id,
-                                categoryName: _categories[index].name,
-                              ),
-                            ),
-                          );
+                        onExpansionChanged: (expanded) {
+                          setState(() {
+                            if (expanded) {
+                              _expandedCategoryIds.add(category.id);
+                              if (!_questionPackagesByCategory
+                                  .containsKey(category.id)) {
+                                _fetchQuestionPackages(category.id);
+                              }
+                            } else {
+                              _expandedCategoryIds.remove(category.id);
+                            }
+                          });
                         },
-                        child: _buildStyledItem(_categories[index]),
+                        children: filteredPackages.isEmpty
+                            ? const [
+                                Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: Text(
+                                    "Không có gói phù hợp.",
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              ]
+                            : filteredPackages.map((pkg) {
+                                return ListTile(
+                                  title:
+                                      _highlightText(pkg.name, _searchKeyword),
+                                  subtitle: Text("ID gói: ${pkg.idQuestion}"),
+                                  leading: const Icon(
+                                      Icons.folder_open_outlined,
+                                      color: Colors.grey),
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      QuizScreenH,
+                                      arguments: {
+                                        'categoryId': category.id,
+                                        'questionId': pkg.idQuestion,
+                                        'idTest': 'null',
+                                        'isTest': false,
+                                      },
+                                    );
+                                  },
+                                );
+                              }).toList(),
                       );
                     },
                   ),
           ),
         ],
       ),
-    ));
-  }
-
-  _buildBottomSheet(BuildContext context, String title, int id) {
-    return showModalBottomSheet(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(40),
-        ),
-        context: context,
-        builder: (_) {
-          return QuizBottomSheet(
-            title: title,
-            id: id,
-          );
-        });
+    );
   }
 }
 
