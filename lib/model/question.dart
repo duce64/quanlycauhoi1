@@ -8,12 +8,14 @@ class Question {
 
   int? categoryId;
   int? idQuestionPackage;
+  bool? isLocal;
   Question({
     required this.question,
     required this.correctAnswer,
     required this.incorrectAnswers,
     required this.categoryId,
     required this.idQuestionPackage,
+    this.isLocal = true,
   });
 
   Question.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Question {
 
     categoryId = json['categoryId'];
     idQuestionPackage = json['idQuestionPackage'];
+    isLocal = false;
   }
 
   Map<String, dynamic> toJson() {
