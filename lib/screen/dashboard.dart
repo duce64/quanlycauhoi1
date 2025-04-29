@@ -27,14 +27,8 @@ class _DashboardPageState extends State<DashboardPage> {
   String? userFullName;
   List<Widget> screens = [];
   List<dynamic> _notifications = [];
-  final List<String> menuTitles = [
-    'Đang diễn ra',
-    'Luyện tập ',
-    'Lịch sử',
-    'Quản lý câu hỏi', // ✅ NEW
-    'Quản lý danh mục', // ✅ NEW
-    'Kết quả kiểm tra', // ✅ NEW
-  ];
+  List<String> menuTitles = [];
+
   int unreadCount = 0;
   @override
   void initState() {
@@ -82,17 +76,39 @@ class _DashboardPageState extends State<DashboardPage> {
         userFullName = decoded['fullname'] ?? '';
         setState(() {
           isAdmin = role == 'admin';
-          screens = [
-            OngoingTestScreen(),
-            HomesScreen(),
-            const UserExamResultScreen(),
-
-            const ManageQuestionScreen(), // ✅ Màn quản lý câu hỏi
-            const ManageCategoryScreen(), // ✅ Màn quản lý danh mục
-            const AdminExamResultScreen(), // ✅ Màn kết quả kiểm tra
-            UpdateProfileScreen(),
-            ChangePasswordScreen(),
-          ];
+          if (isAdmin) {
+            menuTitles = [
+              'Đang diễn ra',
+              'Luyện tập',
+              'Lịch sử',
+              'Quản lý câu hỏi',
+              'Quản lý danh mục',
+              'Kết quả kiểm tra',
+            ];
+            screens = [
+              OngoingTestScreen(),
+              HomesScreen(),
+              const UserExamResultScreen(),
+              const ManageQuestionScreen(),
+              const ManageCategoryScreen(),
+              const AdminExamResultScreen(),
+              UpdateProfileScreen(),
+              ChangePasswordScreen(),
+            ];
+          } else {
+            menuTitles = [
+              'Đang diễn ra',
+              'Luyện tập',
+              'Lịch sử',
+            ];
+            screens = [
+              OngoingTestScreen(),
+              HomesScreen(),
+              const UserExamResultScreen(),
+              UpdateProfileScreen(),
+              ChangePasswordScreen(),
+            ];
+          }
         });
       }
     }
@@ -167,11 +183,17 @@ class _DashboardPageState extends State<DashboardPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'update') {
-                setState(() => currentIndex = 6);
+                setState(() => currentIndex = isAdmin ? 6 : 3);
               } else if (value == 'change_password') {
-                setState(() => currentIndex = 7);
+                setState(() => currentIndex = isAdmin ? 7 : 4);
+              } else if (value == 'logout') {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('auth_token'); // Xóa token
+                if (!mounted) return;
+                Navigator.of(context).pushNamedAndRemoveUntil('LoginScreen',
+                    (route) => false); // Điều hướng về màn đăng nhập
               }
             },
             itemBuilder: (context) => [
@@ -187,6 +209,13 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: ListTile(
                   leading: Icon(Icons.lock),
                   title: Text('Đổi mật khẩu'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'logout',
+                child: ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red),
+                  title: Text('Đăng xuất', style: TextStyle(color: Colors.red)),
                 ),
               ),
             ],
@@ -210,7 +239,11 @@ class _DashboardPageState extends State<DashboardPage> {
               children: List.generate(menuTitles.length, (index) {
                 final selected = index == currentIndex;
                 return InkWell(
-                  onTap: () => setState(() => currentIndex = index),
+                  onTap: () => setState(() {
+                    if (index < screens.length) {
+                      currentIndex = index;
+                    }
+                  }),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),

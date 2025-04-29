@@ -7,7 +7,9 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateExamScreen extends StatefulWidget {
-  const CreateExamScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? exam; // Thêm dòng này
+
+  const CreateExamScreen({Key? key, this.exam}) : super(key: key);
 
   @override
   State<CreateExamScreen> createState() => _CreateExamScreenState();
@@ -41,7 +43,27 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
   @override
   void initState() {
     super.initState();
-    fetchPackages();
+    fetchPackages().then((_) {
+      if (widget.exam != null) {
+        final exam = widget.exam!;
+        titleController.text = exam['title'] ?? '';
+        deadlineController.text = exam['expiredDate'] ?? '';
+        durationController.text = exam['timeLimit']?.toString() ?? '';
+        questionCountController.text = exam['questionCount']?.toString() ?? '';
+        // selectedPackage = exam['questionPackageId'];
+        // selectCategoryId = exam['categoryId'];
+        // selectedDepartment = exam['department'];
+        // selectedUsers = List<String>.from(exam['selectedUsers'] ?? []);
+
+        if (selectedDepartment != null) {
+          fetchUsersByDepartment(selectedDepartment!);
+        }
+
+        if (selectedPackage != null) {
+          fetchTotalQuestions(selectedPackage!);
+        }
+      }
+    });
   }
 
   Future<void> fetchPackages() async {
@@ -84,10 +106,11 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
   Future<void> fetchTotalQuestions(int categoryId) async {
     try {
       final res = await Dio()
-          .get('${AppConstants.baseUrl}/api/questions/by-category/$categoryId');
+          .get('${AppConstants.baseUrl}/api/questions/package/$categoryId');
       if (res.statusCode == 200) {
+        final List questions = res.data['result'];
         setState(() {
-          totalQuestions = res.data.length;
+          totalQuestions = questions.length;
         });
       }
     } catch (e) {
@@ -307,8 +330,8 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                           selectedPackage = val;
                           selectCategoryId = categoryId;
                         });
-
-                        await fetchTotalQuestions(categoryId);
+                        print('check val ${val}');
+                        await fetchTotalQuestions(val);
                       }
                     }
                   },
@@ -354,7 +377,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: createTest,
+                    onPressed: saveExam,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -362,8 +385,10 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Tạo bài kiểm tra",
+                    child: Text(
+                      widget.exam != null
+                          ? 'Cập nhật bài kiểm tra'
+                          : 'Tạo bài kiểm tra',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -377,6 +402,72 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> saveExam() async {
+    if (widget.exam != null) {
+      await updateExam(); // sửa
+    } else {
+      await createTest(); // tạo mới
+    }
+  }
+
+  Future<void> updateExam() async {
+    if (titleController.text.isEmpty ||
+        selectedPackage == null ||
+        selectedUsers.isEmpty ||
+        deadlineController.text.isEmpty ||
+        selectedDepartment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final int questionCount = int.tryParse(questionCountController.text) ?? 0;
+    if (questionCount <= 0 || questionCount > totalQuestions) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Số lượng câu hỏi không hợp lệ')),
+      );
+      return;
+    }
+
+    final data = {
+      "title": titleController.text,
+      "questionPackageId": selectedPackage,
+      "selectedUsers": selectedUsers,
+      "expiredDate": deadlineController.text,
+      "department": selectedDepartment,
+      "categoryId": selectCategoryId,
+      "questionCount": questionCount,
+      "timeLimit":
+          int.tryParse(durationController.text) ?? 0, // thêm thời gian làm bài
+    };
+
+    try {
+      print('checkid ${widget.exam!['_id']}');
+      final res = await Dio().put(
+        '${AppConstants.baseUrl}/api/exams/${widget.exam!['_id']}',
+        data: data,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (res.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cập nhật bài kiểm tra thành công')),
+        );
+        Navigator.pop(context);
+      } else {
+        throw Exception("Cập nhật thất bại");
+      }
+    } catch (e) {
+      print("Lỗi cập nhật bài kiểm tra: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật kiểm tra thất bại')),
+      );
+    }
   }
 
   void openUserSelectDialog() async {

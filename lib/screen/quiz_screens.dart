@@ -181,7 +181,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
       }
     }
 
-    final status = score >= 50 ? 'Đạt' : 'Không đạt';
+    final status = score >= 50 ? 'Passed' : 'Failed';
 
     final dio = Dio();
     try {
@@ -202,6 +202,17 @@ class _QuizPageApiState extends State<QuizPageApi> {
           'Authorization': 'Bearer $token',
         }),
       );
+      print('check ${{
+        "name": name,
+        "score": score,
+        "status": status,
+        "date": DateTime.now().toIso8601String(),
+        "categoryId": widget.categoryId,
+        "questionId": widget.categoryId,
+        "userId": userId,
+        "isTest": widget.isTest,
+        "testId": widget.idTest,
+      }}');
     } catch (e) {
       print("Lỗi nộp bài: $e");
     }
