@@ -1,4 +1,5 @@
 class Question {
+  String? id; // _id từ MongoDB
   String? category;
   String? type;
   String? difficulty;
@@ -10,6 +11,7 @@ class Question {
   int? idQuestionPackage;
   bool? isLocal;
   Question({
+    this.id,
     required this.question,
     required this.correctAnswer,
     required this.incorrectAnswers,
@@ -19,6 +21,7 @@ class Question {
   });
 
   Question.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
     category = json['category'];
     type = json['type'];
     difficulty = json['difficulty'];

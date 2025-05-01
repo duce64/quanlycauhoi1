@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
 import 'package:flutterquiz/model/question_package.dart';
+import 'package:flutterquiz/screen/admin/ViewQuestionsByCategoryScreen.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
@@ -362,19 +363,126 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
                                 return ListTile(
                                   title:
                                       _highlightText(pkg.name, _searchKeyword),
+                                  trailing: PopupMenuButton<String>(
+                                    onSelected: (value) async {
+                                      if (value == 'view') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                ViewQuestionsByCategoryScreen(
+                                              categoryId: pkg.idQuestion,
+                                            ),
+                                          ),
+                                        );
+                                      } else if (value == 'add') {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AddQuestionScreens,
+                                          arguments: {
+                                            'categoryId': category.id,
+                                            'idQuestionPackage': pkg.idQuestion,
+                                          },
+                                        );
+                                      }
+                                      if (value == 'remove') {
+                                        final shouldDelete =
+                                            await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text('Xác nhận xóa'),
+                                            content: Text(
+                                                'Bạn có chắc chắn muốn xóa gói câu hỏi này không?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(false),
+                                                child: Text('Hủy'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(true),
+                                                child: Text('Xóa'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (shouldDelete == true) {
+                                          try {
+                                            print(
+                                                'Xóa gói câu hỏi: ${pkg.idQuestion}');
+                                            final id = pkg.idQuestion;
+
+                                            // Xóa gói câu hỏi
+                                            final response1 = await http.delete(
+                                              Uri.parse(
+                                                  '${AppConstants.baseUrl}/api/questions/package/$id'),
+                                            );
+
+                                            // Xóa câu hỏi trong gói
+                                            final response2 = await http.delete(
+                                              Uri.parse(
+                                                  '${AppConstants.baseUrl}/api/questions/delete/$id'),
+                                            );
+
+                                            if (response1.statusCode == 200 ||
+                                                response2.statusCode == 200) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content:
+                                                        Text('Xóa thành công')),
+                                              );
+                                              _loadCategories();
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content:
+                                                        Text('Xóa thất bại')),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text('Lỗi: $e')),
+                                            );
+                                          }
+                                        }
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      const PopupMenuItem(
+                                        value: 'view',
+                                        child: Text('Xem toàn bộ câu hỏi'),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'add',
+                                        child: Text('Thêm câu hỏi'),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'remove',
+                                        child: Text('Xóa bộ câu hỏi'),
+                                      ),
+                                    ],
+                                  ),
                                   subtitle: Text("ID gói: ${pkg.idQuestion}"),
                                   leading: const Icon(
                                       Icons.folder_open_outlined,
                                       color: Colors.grey),
                                   onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      AddQuestionScreens,
-                                      arguments: {
-                                        'categoryId': category.id,
-                                        'idQuestionPackage': pkg.idQuestion,
-                                      },
-                                    );
+                                    // Navigator.pushNamed(
+                                    //   context,
+                                    //   AddQuestionScreens,
+                                    //   arguments: {
+                                    //     'categoryId': category.id,
+                                    //     'idQuestionPackage': pkg.idQuestion,
+                                    //   },
+                                    // );
                                     // Navigator.pushNamed(
                                     //   context,
                                     //   QuestionPackageListScreens,
