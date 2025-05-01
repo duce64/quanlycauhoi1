@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
+import 'package:flutterquiz/mahoa.dart';
+import 'package:flutterquiz/model/question.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -108,9 +110,17 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
       final res = await Dio()
           .get('${AppConstants.baseUrl}/api/questions/package/$categoryId');
       if (res.statusCode == 200) {
-        final List questions = res.data['result'];
+        final encrypted = res.data['result'];
+        final iv = res.data['iv']; // nếu gửi từ backend
+        final decryptedJson =
+            decryptAes(encrypted, '1234567890abcdef', 'abcdef1234567890');
+        final List<dynamic> questions = jsonDecode(decryptedJson);
+
+        final listQuestion =
+            questions.map((e) => Question.fromJson(e)).toList();
+        // final List questions = res.data['result'];
         setState(() {
-          totalQuestions = questions.length;
+          totalQuestions = listQuestion.length;
         });
       }
     } catch (e) {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
+import 'package:flutterquiz/mahoa.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -83,8 +84,13 @@ class _QuizPageApiState extends State<QuizPageApi> {
       final res = await dio.get(url);
 
       if (res.statusCode == 200) {
-        final List<dynamic> results = res.data['result'];
-        listQuestion = results.map((e) => Question.fromJson(e)).toList();
+        final encrypted = res.data['result'];
+        final iv = res.data['iv']; // nếu gửi từ backend
+        final decryptedJson =
+            decryptAes(encrypted, '1234567890abcdef', 'abcdef1234567890');
+        final List<dynamic> questions = jsonDecode(decryptedJson);
+
+        listQuestion = questions.map((e) => Question.fromJson(e)).toList();
 
         // ✅ Nếu có numberQuestion và số lượng ít hơn danh sách, thì random chọn
         if (widget.numberQuestion != null &&
@@ -112,6 +118,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
       }
     } catch (e) {
       setState(() {
+        print('check error $e');
         error = 'Lỗi kết nối: $e';
         isLoading = false;
       });
