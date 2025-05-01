@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,7 +74,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     try {
       setState(() => isLoading = true);
       final res = await Dio().put(
-        'http://192.168.52.91:3000/update/$userId',
+        '${AppConstants.baseUrl}/update/$userId',
         data: data,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:pdf/pdf.dart';
@@ -36,7 +37,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-            'http://192.168.52.91:3000/api/results/by-test/${widget.examId}'),
+            '${AppConstants.baseUrl}/api/results/by-test/${widget.examId}'),
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as List;

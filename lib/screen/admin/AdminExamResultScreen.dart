@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/screen/admin/ExamDetailScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,7 +44,7 @@ class _AdminExamResultScreenState extends State<AdminExamResultScreen> {
 
   Future<List<Exam>> fetchExams() async {
     final response =
-        await http.get(Uri.parse('http://192.168.52.91:3000/api/exams'));
+        await http.get(Uri.parse('${AppConstants.baseUrl}/api/exams'));
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
       return data.map((e) => Exam.fromJson(e)).toList();
