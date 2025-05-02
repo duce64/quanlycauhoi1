@@ -19,6 +19,9 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
   String? _error;
+  String _searchText = '';
+  int _sortColumnIndex = 0;
+  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -51,122 +54,129 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kLightBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: kTitleColor),
-        title: const Text(
-          "👥 Quản lý người dùng",
-          style: TextStyle(
-            color: kTitleColor,
-            fontWeight: FontWeight.bold,
+        backgroundColor: kLightBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          iconTheme: const IconThemeData(color: kTitleColor),
+          title: const Text(
+            " Quản lý người dùng",
+            style: TextStyle(
+              color: kTitleColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Text("❌ $_error", style: TextStyle(color: Colors.red)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _users.length,
-                  itemBuilder: (context, index) {
-                    final user = _users[index];
-                    final userId = user['_id'] ?? '';
-                    final name = (user['fullname'] is String &&
-                            user['fullname'].isNotEmpty)
-                        ? user['fullname']
-                        : 'Không rõ';
-                    final department = (user['department'] is String &&
-                            user['department'].isNotEmpty)
-                        ? user['department']
-                        : 'Không có phòng ban';
-                    final role =
-                        (user['role'] is String && user['role'].isNotEmpty)
-                            ? user['role']
-                            : 'user';
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: kCardBackground,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: kPrimaryColor.withOpacity(0.1),
-                            child: Text(
-                                name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                style: TextStyle(
-                                    color: kPrimaryColor,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(name,
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: kTitleColor)),
-                                const SizedBox(height: 4),
-                                Text("Phòng ban: $department",
-                                    style: TextStyle(color: Colors.grey[700])),
-                                Row(
-                                  children: [
-                                    const Text("Vai trò: ",
-                                        style: TextStyle(color: Colors.grey)),
-                                    DropdownButton<String>(
-                                      value: role,
-                                      items: ['admin', 'user'].map((role) {
-                                        return DropdownMenuItem(
-                                          value: role,
-                                          child: Text(
-                                            role,
-                                            style: const TextStyle(
-                                                color: Colors.black),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (newValue) {
-                                        if (newValue != null) {
-                                          setState(() {
-                                            _users[index]['role'] = newValue;
-                                          });
-                                          _updateUserRole(userId, newValue);
-                                        }
-                                      },
-                                      underline: Container(),
-                                    ),
-                                  ],
-                                )
-                              ],
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child:
+                        Text("❌ $_error", style: TextStyle(color: Colors.red)))
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // Search field
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: 40, // giảm chiều cao
+                            child: TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Tìm kiếm theo tên',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchText = value.toLowerCase();
+                                });
+                              },
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _confirmDelete(userId),
+                        ),
+                        const SizedBox(height: 20),
+                        // Paginated table
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width *
+                                  0.95, // Gần full màn
+                              child: PaginatedDataTable(
+                                header: const Text('Danh sách người dùng'),
+                                rowsPerPage: 5,
+                                sortColumnIndex: _sortColumnIndex,
+                                sortAscending: _sortAscending,
+                                columns: [
+                                  DataColumn(
+                                    label: const Text('Tên'),
+                                    onSort: (columnIndex, ascending) {
+                                      setState(() {
+                                        _sortColumnIndex = columnIndex;
+                                        _sortAscending = ascending;
+                                        _users.sort((a, b) {
+                                          final nameA = a['fullname'] ?? '';
+                                          final nameB = b['fullname'] ?? '';
+                                          return ascending
+                                              ? nameA.compareTo(nameB)
+                                              : nameB.compareTo(nameA);
+                                        });
+                                      });
+                                    },
+                                  ),
+                                  DataColumn(
+                                    label: const Text('Phòng ban'),
+                                    onSort: (columnIndex, ascending) {
+                                      setState(() {
+                                        _sortColumnIndex = columnIndex;
+                                        _sortAscending = ascending;
+                                        _users.sort((a, b) {
+                                          final deptA = a['department'] ?? '';
+                                          final deptB = b['department'] ?? '';
+                                          return ascending
+                                              ? deptA.compareTo(deptB)
+                                              : deptB.compareTo(deptA);
+                                        });
+                                      });
+                                    },
+                                  ),
+                                  DataColumn(
+                                    label: const Text('Vai trò'),
+                                    onSort: (columnIndex, ascending) {
+                                      setState(() {
+                                        _sortColumnIndex = columnIndex;
+                                        _sortAscending = ascending;
+                                        _users.sort((a, b) {
+                                          final roleA = a['role'] ?? '';
+                                          final roleB = b['role'] ?? '';
+                                          return ascending
+                                              ? roleA.compareTo(roleB)
+                                              : roleB.compareTo(roleA);
+                                        });
+                                      });
+                                    },
+                                  ),
+                                  const DataColumn(label: Text('Hành động')),
+                                ],
+                                source: UserDataSource(
+                                  users: _users
+                                      .where((user) => user['fullname']
+                                          .toString()
+                                          .toLowerCase()
+                                          .contains(_searchText))
+                                      .toList(),
+                                  onRoleChanged: _updateUserRole,
+                                  onDelete: _confirmDelete,
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-    );
+                        ),
+                      ],
+                    ),
+                  ));
   }
 
   void _confirmDelete(String userId) async {
@@ -237,4 +247,71 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
       );
     }
   }
+}
+
+class UserDataSource extends DataTableSource {
+  final List<Map<String, dynamic>> users;
+  final Function(String, String) onRoleChanged;
+  final Function(String) onDelete;
+
+  UserDataSource({
+    required this.users,
+    required this.onRoleChanged,
+    required this.onDelete,
+  });
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= users.length) return null;
+
+    final user = users[index];
+    final userId = user['_id'] ?? '';
+    final name = user['fullname'] ?? 'Không rõ';
+    final department = user['department'] ?? 'Không có phòng ban';
+    final role = user['role'] ?? 'user';
+
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(name)),
+        DataCell(Text(department)),
+        DataCell(DropdownButton<String>(
+          value: role,
+          items: ['admin', 'user'].map((r) {
+            return DropdownMenuItem(
+              value: r,
+              child: Text(
+                r,
+                style: TextStyle(
+                  color: r == 'admin' ? Colors.red : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (newRole) {
+            if (newRole != null) {
+              onRoleChanged(userId, newRole);
+              user['role'] = newRole;
+              notifyListeners();
+            }
+          },
+          underline: Container(),
+        )),
+        DataCell(
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () => onDelete(userId),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+  @override
+  int get rowCount => users.length;
+  @override
+  int get selectedRowCount => 0;
 }

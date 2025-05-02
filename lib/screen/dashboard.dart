@@ -6,6 +6,7 @@ import 'package:flutterquiz/screen/ExamResultScreenUser.dart';
 import 'package:flutterquiz/screen/UpdateProfileScreen.dart';
 import 'package:flutterquiz/screen/admin/AdminExamResultScreen.dart';
 import 'package:flutterquiz/screen/admin/category_admin_screen.dart';
+import 'package:flutterquiz/screen/admin/mangage_user_screen.dart';
 import 'package:flutterquiz/screen/admin/ongoing_test_screen.dart';
 import 'package:flutterquiz/screen/admin/question_admin_screen.dart';
 import 'package:flutterquiz/screen/homes_screen.dart';
@@ -133,11 +134,25 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {},
-            color: Colors.grey[800],
-          ),
+          isAdmin
+              ? PopupMenuButton<String>(
+                  icon: Icon(Icons.menu, color: Colors.grey[800]),
+                  onSelected: (value) {
+                    // Xử lý từng lựa chọn
+                    if (value == 'edit') {
+                      // Xử lý chức năng Edit
+                      Navigator.pushNamed(context, ManageUserScreenss);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Text('Quản lý người dùng'),
+                    ),
+                  ],
+                )
+              : Container(),
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () {},
@@ -363,115 +378,117 @@ class _DashboardPageState extends State<DashboardPage> {
                         if (checkRes.statusCode == 200 &&
                             checkData['hasTaken'] == false &&
                             !isExpired) {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.play_circle_fill,
-                                        color: Colors.blue, size: 48),
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      "Bạn có muốn bắt đầu bài kiểm tra này ngay bây giờ không?",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text("Huỷ"),
-                                        ),
-                                        ElevatedButton.icon(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          icon: const Icon(Icons.check),
-                                          label: const Text("Bắt đầu"),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
+                          //   final confirm = await showDialog<bool>(
+                          //     context: context,
+                          //     builder: (context) => Dialog(
+                          //       shape: RoundedRectangleBorder(
+                          //           borderRadius: BorderRadius.circular(20)),
+                          //       child: Padding(
+                          //         padding: const EdgeInsets.all(20.0),
+                          //         child: Column(
+                          //           mainAxisSize: MainAxisSize.min,
+                          //           children: [
+                          //             const Icon(Icons.play_circle_fill,
+                          //                 color: Colors.blue, size: 48),
+                          //             const SizedBox(height: 12),
+                          //             const Text(
+                          //               "Bạn có muốn bắt đầu bài kiểm tra này ngay bây giờ không?",
+                          //               textAlign: TextAlign.center,
+                          //               style: TextStyle(
+                          //                   fontSize: 16,
+                          //                   fontWeight: FontWeight.w500),
+                          //             ),
+                          //             const SizedBox(height: 24),
+                          //             Row(
+                          //               mainAxisAlignment:
+                          //                   MainAxisAlignment.spaceAround,
+                          //               children: [
+                          //                 TextButton(
+                          //                   onPressed: () =>
+                          //                       Navigator.pop(context, false),
+                          //                   child: const Text("Huỷ"),
+                          //                 ),
+                          //                 ElevatedButton.icon(
+                          //                   onPressed: () =>
+                          //                       Navigator.pop(context, true),
+                          //                   icon: const Icon(Icons.check),
+                          //                   label: const Text("Bắt đầu"),
+                          //                 ),
+                          //               ],
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   );
 
-                          if (confirm == true) {
-                            Navigator.pushNamed(
-                              context,
-                              QuizScreenH,
-                              arguments: {
-                                'categoryId': notif['categoryId'],
-                                'questionId': notif['questionId'],
-                                'idTest': '${notif['idTest']}',
-                                'isTest': true,
-                              },
-                            );
-                          }
-                        } else if (isExpired) {
-                          showDialog(
-                            context: context,
-                            builder: (_) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.timer_off,
-                                        color: Colors.redAccent, size: 48),
-                                    const SizedBox(height: 12),
-                                    const Text("Bài kiểm tra này đã hết hạn.",
-                                        style: TextStyle(fontSize: 16)),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text("Đóng"),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        } else {
-                          showDialog(
-                            context: context,
-                            builder: (_) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.info_outline,
-                                        color: Colors.orange, size: 48),
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                        "Bạn đã hoàn thành bài kiểm tra này.",
-                                        style: TextStyle(fontSize: 16)),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text("Đóng"),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
+                          //   if (confirm == true) {
+                          //     // Navigator.pushNamed(
+                          //     //   context,
+                          //     //   QuizScreenH,
+                          //     //   arguments: {
+                          //     //     'categoryId': notif['categoryId'],
+                          //     //     'questionId': notif['questionId'],
+                          //     //     'idTest': '${notif['idTest']}',
+                          //     //     'isTest': true,
+                          //     //   },
+                          //     // );
+                          //   }
+                          // } else if (isExpired) {
+                          //   showDialog(
+                          //     context: context,
+                          //     builder: (_) => Dialog(
+                          //       shape: RoundedRectangleBorder(
+                          //           borderRadius: BorderRadius.circular(16)),
+                          //       child: Padding(
+                          //         padding: const EdgeInsets.all(20),
+                          //         child: Column(
+                          //           mainAxisSize: MainAxisSize.min,
+                          //           children: [
+                          //             const Icon(Icons.timer_off,
+                          //                 color: Colors.redAccent, size: 48),
+                          //             const SizedBox(height: 12),
+                          //             const Text("Bài kiểm tra này đã hết hạn.",
+                          //                 style: TextStyle(fontSize: 16)),
+                          //             const SizedBox(height: 16),
+                          //             ElevatedButton(
+                          //               onPressed: () => Navigator.pop(context),
+                          //               child: const Text("Đóng"),
+                          //             )
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   );
+                          // } else {
+                          //   showDialog(
+                          //     context: context,
+                          //     builder: (_) => Dialog(
+                          //       shape: RoundedRectangleBorder(
+                          //           borderRadius: BorderRadius.circular(16)),
+                          //       child: Padding(
+                          //         padding: const EdgeInsets.all(20),
+                          //         child: Column(
+                          //           mainAxisSize: MainAxisSize.min,
+                          //           children: [
+                          //             const Icon(Icons.info_outline,
+                          //                 color: Colors.orange, size: 48),
+                          //             const SizedBox(height: 12),
+                          //             const Text(
+                          //                 "Bạn đã hoàn thành bài kiểm tra này.",
+                          //                 style: TextStyle(fontSize: 16)),
+                          //             const SizedBox(height: 16),
+                          //             ElevatedButton(
+                          //               onPressed: () => Navigator.pop(context),
+                          //               child: const Text("Đóng"),
+                          //             )
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   );
+                          // }
+                          // },
                         }
                       },
                       child: Container(

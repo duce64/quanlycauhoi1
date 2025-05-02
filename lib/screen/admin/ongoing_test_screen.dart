@@ -219,11 +219,11 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(''),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   elevation: 0,
+      //   title: const Text(''),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
@@ -280,7 +280,9 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
             ),
             onPressed: () {
               Navigator.pushNamed(context, CreateExamScreens).then((value) {
-                fetchTests();
+                print('value: $value');
+                fetchTests(); // Gọi lại hàm load bài kiểm tra sau khi tạo mới
+                setState(() {});
               });
             },
             icon: const Icon(Icons.add, size: 16, color: Colors.white),
@@ -504,7 +506,9 @@ class _TestCardState extends State<_TestCard> {
           },
         ),
       ),
-    );
+    ).then((value) {
+      widget.onDeleted(); // GỌI LẠI load
+    });
   }
 
   void _deleteTest(Map<String, dynamic> test) async {

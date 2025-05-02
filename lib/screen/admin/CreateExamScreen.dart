@@ -128,17 +128,33 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
     }
   }
 
-  Future<void> selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> selectDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
-    if (picked != null) {
-      setState(() {
-        deadlineController.text = picked.toIso8601String().substring(0, 10);
-      });
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final DateTime fullDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        setState(() {
+          deadlineController.text = fullDateTime.toIso8601String();
+        });
+      }
     }
   }
 
@@ -378,7 +394,7 @@ class _CreateExamScreenState extends State<CreateExamScreen> {
                 TextField(
                   controller: deadlineController,
                   readOnly: true,
-                  onTap: () => selectDate(context),
+                  onTap: () => selectDateTime(context),
                   decoration: customInputDecoration('Ngày hết hạn').copyWith(
                     suffixIcon: const Icon(Icons.calendar_today),
                   ),

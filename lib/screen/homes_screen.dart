@@ -217,9 +217,10 @@ class _ManageQuestionScreenState extends State<HomesScreen> {
                               ]
                             : filteredPackages.map((pkg) {
                                 return ListTile(
-                                  title:
-                                      _highlightText(pkg.name, _searchKeyword),
-                                  subtitle: Text("ID gói: ${pkg.idQuestion}"),
+                                  title: _highlightText(
+                                      'Gói câu hỏi ${pkg.name}',
+                                      _searchKeyword),
+                                  // subtitle: Text("ID gói: ${pkg.}"),
                                   leading: const Icon(
                                       Icons.folder_open_outlined,
                                       color: Colors.grey),
