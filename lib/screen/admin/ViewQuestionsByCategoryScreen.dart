@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
+import 'package:flutterquiz/mahoa.dart';
 import 'package:flutterquiz/model/question.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,27 +29,37 @@ class _ViewQuestionsByCategoryScreenState
   }
 
   Future<void> _fetchQuestions() async {
+    final dio = Dio();
+    final url =
+        "${AppConstants.baseUrl}/api/questions/package/${widget.categoryId}";
+
     try {
-      final response = await http.get(
-        Uri.parse(
-            '${AppConstants.baseUrl}/api/questions/package/${widget.categoryId}'),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<Question> loadedQuestions = (data['result'] as List)
-            .map((item) => Question.fromJson(item))
-            .toList();
+      setState(() => _isLoading = true);
+
+      final res = await dio.get(url);
+
+      if (res.statusCode == 200) {
+        final encrypted = res.data['result'];
+        final decryptedJson =
+            decryptAes(encrypted, '1234567890abcdef', 'abcdef1234567890');
+        final List<dynamic> questions = jsonDecode(decryptedJson);
+
+        List<Question> loadedQuestions =
+            questions.map((e) => Question.fromJson(e)).toList();
 
         setState(() {
           _questions = loadedQuestions;
           _isLoading = false;
         });
       } else {
-        throw Exception('Lỗi khi tải câu hỏi');
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      print('Lỗi API: $e');
       setState(() {
+        print('Lỗi khi gọi API hoặc giải mã: $e');
+
         _isLoading = false;
       });
     }

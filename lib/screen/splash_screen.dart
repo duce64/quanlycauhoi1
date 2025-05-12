@@ -42,7 +42,7 @@ class _SplashPageState extends State<SplashPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
-              "Phần mềm ",
+              "Hệ thống",
               style: TextStyle(
                   color: Colors.white,
                   letterSpacing: 3.0,
@@ -53,7 +53,7 @@ class _SplashPageState extends State<SplashPage> {
               height: 10,
             ),
             Text(
-              "Thi trắc nghiệm",
+              "quản lý câu hỏi",
               style: TextStyle(
                 color: Colors.white,
                 letterSpacing: 3.0,
