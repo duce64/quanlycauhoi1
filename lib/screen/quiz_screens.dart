@@ -50,6 +50,15 @@ class _QuizPageApiState extends State<QuizPageApi> {
 
   @override
   void initState() {
+   html.document.body?.onMouseLeave.listen((event) {
+    // Chuột rời khỏi vùng hiển thị của trình duyệt
+    showMouseLeaveWarning();
+  });
+
+  html.window.onBlur.listen((event) {
+    // Trường hợp người dùng Alt+Tab hoặc mất focus
+    showMouseLeaveWarning();
+  });
      html.document.onVisibilityChange.listen((event) {
     if (html.document.hidden!) {
       // Học sinh đã chuyển tab, thu nhỏ hoặc rời khỏi màn hình
@@ -62,11 +71,47 @@ class _QuizPageApiState extends State<QuizPageApi> {
     _remainingSeconds = widget.timeLimitMinutes * 60;
     _startTimer();
   }
-int warningCount = 0;
+  int warningCount = 0;
+
+void showMouseLeaveWarning() {
+  warningCount++;
+  if (!mounted) return;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: Text("⚠️ Cảnh Báo $warningCount/5"),
+      content: Text("Bạn đã rời khỏi màn hình lần thứ $warningCount. "
+          "Nếu vi phạm tiếp, bài thi sẽ bị kết thúc."),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            if (warningCount >= 5) {
+                Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => QuizFinishPage(
+                title: listQuestion[0].category ?? '',
+                answer: answer,
+                listQuestion: listQuestion,
+              ),
+            ),
+          );
+            }
+          },
+          child: Text("Tôi hiểu"),
+        ),
+      ],
+    ),
+  );
+}
+
 
 Future<void> showWarningDialog() async {
   warningCount++;
-  if (warningCount >= 3) {
+  if (warningCount >= 5) {
     // Thoát bài thi, lưu kết quả, v.v.
     await submitExamResult();
           if (!mounted) return;

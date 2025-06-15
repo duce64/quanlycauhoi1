@@ -170,7 +170,7 @@ class _ManageQuestionScreenState extends State<HomesScreen> {
                 : _filteredCategories().length==0?
                 EmptyStateWidget(
                     svgPath: 'assets/empty.svg',
-                    message: 'Không có gói câu hỏi nào p',
+                    message: 'Không có gói câu hỏi nào ',
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

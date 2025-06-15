@@ -63,7 +63,14 @@ class _LoginScreenState extends State<LoginPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset('assets/logo.png', height: height * 0.15),
+                     Hero(
+  tag: 'appLogo',
+  child: Image.asset(
+    'assets/logo.png',
+    height: height * 0.15,
+  ),
+),
+
                       const SizedBox(height: 20),
                       Text(
                         'HỆ THỐNG QUẢN LÝ CÂU HỎI',
@@ -125,11 +132,29 @@ class _LoginScreenState extends State<LoginPage> {
                             }
                             return null;
                           },
+                          onFieldSubmitted: (_) {
+  if (_formKey.currentState!.validate()) {
+    context.read<AuthBloc>().add(LoginSubmitted(
+      _usernameController.text.trim(),
+      _passwordController.text.trim(),
+    ));
+  }
+},
+
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
+                          onFieldSubmitted: (_) {
+  if (_formKey.currentState!.validate()) {
+    context.read<AuthBloc>().add(LoginSubmitted(
+      _usernameController.text.trim(),
+      _passwordController.text.trim(),
+    ));
+  }
+},
+
                           onChanged: (value) => context
                               .read<AuthBloc>()
                               .add(AuthPasswordChanged(value)),

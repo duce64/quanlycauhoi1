@@ -65,7 +65,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset('assets/logo.png', height: height * 0.15),
+                      Hero(
+  tag: 'appLogo',
+  child: Image.asset(
+    'assets/logo.png',
+    height: height * 0.15,
+  ),
+),
+
                       const SizedBox(height: 20),
                       Text(
                         'HỆ THỐNG QUẢN LÝ CÂU HỎI',
@@ -211,6 +218,18 @@ class _RegisterPageState extends State<RegisterPage> {
       String label, TextEditingController controller, IconData icon) {
     return TextFormField(
       controller: controller,
+      onFieldSubmitted: (_) {
+  if (_formKey.currentState!.validate()) {
+    context.read<AuthBloc>().add(RegisterSubmitted(
+                                      username: _usernameController.text.trim(),
+                                      password: _passwordController.text.trim(),
+                                      department:
+                                          _departmentController.text.trim(),
+                                      detail: _detailController.text.trim(),
+                                      fullname: _fullNameController.text.trim(),
+                                    ));
+  }
+},
       validator: (value) =>
           value == null || value.trim().isEmpty ? 'Vui lòng nhập $label' : null,
       decoration: InputDecoration(
