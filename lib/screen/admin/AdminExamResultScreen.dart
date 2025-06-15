@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/screen/admin/ExamDetailScreen.dart';
+import 'package:flutterquiz/screen/widgets/empty.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,12 +71,19 @@ class _AdminExamResultScreenState extends State<AdminExamResultScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Lỗi: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                        child: Text('Không có bài kiểm tra nào.'));
+                    return EmptyStateWidget(
+                    svgPath: 'assets/empty.svg',
+                    message: 'Không có bài kiểm tra nào',
+                  );
                   }
 
                   final exams = snapshot.data!;
-                  return ListView.builder(
+                  return exams.length==0?
+                  EmptyStateWidget(
+                    svgPath: 'assets/empty.svg',
+                    message: 'Không có bài kiểm tra nào',
+                  )
+                  :ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     itemCount: exams.length,
                     itemBuilder: (context, index) {

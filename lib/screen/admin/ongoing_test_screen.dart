@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/screen/admin/CreateExamScreen.dart';
 import 'package:flutterquiz/screen/quiz_screens.dart';
+import 'package:flutterquiz/screen/widgets/empty.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,6 +54,11 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
           isLoadingOngoing = false;
           print('ongoingTests: $ongoingTests');
         });
+      }else{
+        print('❌ Lỗi khi load ongoing tests: ${ongoingRes.statusCode}');
+        setState(() {
+          isLoadingOngoing = false;
+        });
       }
 
       if (expiredRes.statusCode == 200) {
@@ -60,6 +66,11 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
         setState(() {
           expiredTests =
               data.map<Map<String, dynamic>>((test) => _mapTest(test)).toList();
+          isLoadingExpired = false;
+        });
+      }else{
+        print('❌ Lỗi khi load expired tests: ${expiredRes.statusCode}');
+        setState(() {
           isLoadingExpired = false;
         });
       }
@@ -308,7 +319,11 @@ class _OngoingTestScreenState extends State<OngoingTestScreen> {
       child: isLoading
           ? _buildSkeleton()
           : tests.isEmpty
-              ? const Center(child: Text('Không có bài kiểm tra nào'))
+              ? EmptyStateWidget(
+                  svgPath: 'assets/empty.svg',
+                  message: isExpired
+                      ? "Không có bài kiểm tra đã hết hạn."
+                      : "Không có bài kiểm tra đang diễn ra.")
               : ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(
                     dragDevices: {

@@ -31,7 +31,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.category.name);
-    _base64Image = widget.category.image;
+    // _base64Image = widget.category.image;
   }
 
   Future<void> _pickImage() async {
@@ -131,85 +131,85 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                           border: OutlineInputBorder(),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: Container(
-                          height: 200,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              )
-                            ],
-                          ),
-                          child: Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: _base64Image != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.memory(
-                                          Uint8List.fromList(
-                                              base64Decode(_base64Image!)),
-                                          width: double.infinity,
-                                          height: 200,
-                                          fit: BoxFit
-                                              .cover, // hoặc BoxFit.fitWidth nếu muốn giữ chiều cao tự động
-                                        ),
-                                      )
-                                    : Container(
-                                        width: double.infinity,
-                                        height: 200,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.image,
-                                            size: 50, color: Colors.grey),
-                                      ),
-                              ),
-                              Positioned(
-                                bottom: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                      color: Colors.black45,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 8,
-                                          offset: Offset(0, 4),
-                                        )
-                                      ],
-                                      borderRadius: BorderRadius.circular(16)),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.edit,
-                                          color: Colors.white, size: 16),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        "Đổi ảnh",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
+                      // const SizedBox(height: 20),
+                      // GestureDetector(
+                      //   onTap: _pickImage,
+                      //   child: Container(
+                      //     height: 200,
+                      //     width: double.infinity,
+                      //     decoration: BoxDecoration(
+                      //       borderRadius: BorderRadius.circular(12),
+                      //       border: Border.all(color: Colors.grey.shade300),
+                      //       boxShadow: [
+                      //         BoxShadow(
+                      //           color: Colors.black12,
+                      //           blurRadius: 6,
+                      //           offset: Offset(0, 2),
+                      //         )
+                      //       ],
+                      //     ),
+                      //     child: Stack(
+                      //       children: [
+                      //         ClipRRect(
+                      //           borderRadius: BorderRadius.circular(12),
+                      //           child: _base64Image != null
+                      //               ? ClipRRect(
+                      //                   borderRadius: BorderRadius.circular(12),
+                      //                   child: Image.memory(
+                      //                     Uint8List.fromList(
+                      //                         base64Decode(_base64Image!)),
+                      //                     width: double.infinity,
+                      //                     height: 200,
+                      //                     fit: BoxFit
+                      //                         .cover, // hoặc BoxFit.fitWidth nếu muốn giữ chiều cao tự động
+                      //                   ),
+                      //                 )
+                      //               : Container(
+                      //                   width: double.infinity,
+                      //                   height: 200,
+                      //                   color: Colors.grey[200],
+                      //                   child: const Icon(Icons.image,
+                      //                       size: 50, color: Colors.grey),
+                      //                 ),
+                      //         ),
+                      //         Positioned(
+                      //           bottom: 8,
+                      //           right: 8,
+                      //           child: Container(
+                      //             padding: const EdgeInsets.symmetric(
+                      //                 horizontal: 10, vertical: 6),
+                      //             decoration: BoxDecoration(
+                      //                 color: Colors.black45,
+                      //                 boxShadow: [
+                      //                   BoxShadow(
+                      //                     color: Colors.black12,
+                      //                     blurRadius: 8,
+                      //                     offset: Offset(0, 4),
+                      //                   )
+                      //                 ],
+                      //                 borderRadius: BorderRadius.circular(16)),
+                      //             child: const Row(
+                      //               mainAxisSize: MainAxisSize.min,
+                      //               children: [
+                      //                 Icon(Icons.edit,
+                      //                     color: Colors.white, size: 16),
+                      //                 SizedBox(width: 4),
+                      //                 Text(
+                      //                   "Đổi ảnh",
+                      //                   style: TextStyle(
+                      //                     color: Colors.white,
+                      //                     fontWeight: FontWeight.bold,
+                      //                     fontSize: 13,
+                      //                   ),
+                      //                 )
+                      //               ],
+                      //             ),
+                      //           ),
+                      //         )
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: _updateCategory,

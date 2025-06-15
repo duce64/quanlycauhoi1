@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
 import 'package:flutterquiz/model/question_package.dart';
+import 'package:flutterquiz/screen/widgets/empty.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
@@ -166,6 +167,11 @@ class _ManageQuestionScreenState extends State<HomesScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
+                : _filteredCategories().length==0?
+                EmptyStateWidget(
+                    svgPath: 'assets/empty.svg',
+                    message: 'Không có gói câu hỏi nào p',
+                  )
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _filteredCategories().length,

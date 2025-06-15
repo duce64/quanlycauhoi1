@@ -12,6 +12,8 @@ import 'package:flutterquiz/screen/quiz_finish_screen.dart';
 import 'package:flutterquiz/widget/awesomedialog.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as html;
+
 
 class QuizPageApi extends StatefulWidget {
   final int categoryId;
@@ -48,11 +50,60 @@ class _QuizPageApiState extends State<QuizPageApi> {
 
   @override
   void initState() {
+     html.document.onVisibilityChange.listen((event) {
+    if (html.document.hidden!) {
+      // Học sinh đã chuyển tab, thu nhỏ hoặc rời khỏi màn hình
+      showWarningDialog();
+    }
+  });
     super.initState();
+    
     fetchQuestions();
     _remainingSeconds = widget.timeLimitMinutes * 60;
     _startTimer();
   }
+int warningCount = 0;
+
+Future<void> showWarningDialog() async {
+  warningCount++;
+  if (warningCount >= 3) {
+    // Thoát bài thi, lưu kết quả, v.v.
+    await submitExamResult();
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => QuizFinishPage(
+                title: listQuestion[0].category ?? '',
+                answer: answer,
+                listQuestion: listQuestion,
+              ),
+            ),
+          );
+    return;
+  }
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("⚠️ Cảnh Báo $warningCount/3"),
+        content: Text("Bạn đã thoát khỏi bài thi lần $warningCount! "
+            "Nếu tiếp tục, bài thi sẽ bị kết thúc."),
+        actions: [
+          TextButton(
+            child: Text("Tôi đã hiểu"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -406,6 +457,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
               ),
             ),
             const SizedBox(height: 12),
+            
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -459,6 +511,55 @@ class _QuizPageApiState extends State<QuizPageApi> {
                 ),
               ],
             ),
+            SizedBox(height: 20),
+            Text('Danh sách câu hỏi:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            // Thêm vào phần cuối Column trong build(), ví dụ trước nút Next
+   Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: SizedBox(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: listQuestion.length,
+                    itemBuilder: (context, index) {
+                      final selected = index == currentIndex;
+                      final hasAnswered = answer.containsKey(index);
+                      Color backgroundColor;
+                      if (selected) {
+                        backgroundColor = Colors.blue;
+                      } else if (hasAnswered) {
+                        backgroundColor = Colors.green;
+                      } else {
+                        backgroundColor = Colors.grey[300]!;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              currentIndex = index;
+                            });
+                          },
+                          child: CircleAvatar(
+                            radius: 22,
+                            backgroundColor: backgroundColor,
+                            child: Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                color: selected || hasAnswered ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
           ],
         ),
       ),

@@ -231,7 +231,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
   void _showEditDialog(Category category) {
     final TextEditingController nameController =
         TextEditingController(text: category.name);
-    String imageBase64 = category.image;
+    // String imageBase64 = category.image;
 
     showDialog(
       context: context,
@@ -256,39 +256,39 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () async {
-                final picked = await ImagePicker()
-                    .pickImage(source: ImageSource.gallery, imageQuality: 60);
-                if (picked != null) {
-                  final bytes = await picked.readAsBytes();
-                  setState(() {
-                    imageBase64 = base64Encode(bytes);
-                  });
-                }
-              },
-              child: Column(
-                children: [
-                  const Text(
-                    'Ảnh đại diện',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: imageBase64.isNotEmpty
-                        ? Image.memory(base64Decode(imageBase64),
-                            fit: BoxFit.cover)
-                        : const Icon(Icons.image, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () async {
+            //     final picked = await ImagePicker()
+            //         .pickImage(source: ImageSource.gallery, imageQuality: 60);
+            //     if (picked != null) {
+            //       final bytes = await picked.readAsBytes();
+            //       setState(() {
+            //         imageBase64 = base64Encode(bytes);
+            //       });
+            //     }
+            //   },
+            //   child: Column(
+            //     children: [
+            //       const Text(
+            //         'Ảnh đại diện',
+            //         style: TextStyle(fontSize: 14, color: Colors.grey),
+            //       ),
+            //       const SizedBox(height: 8),
+            //       Container(
+            //         width: 100,
+            //         height: 100,
+            //         decoration: BoxDecoration(
+            //           border: Border.all(color: Colors.grey.shade300),
+            //           borderRadius: BorderRadius.circular(8),
+            //         ),
+            //         child: imageBase64.isNotEmpty
+            //             ? Image.memory(base64Decode(imageBase64),
+            //                 fit: BoxFit.cover)
+            //             : const Icon(Icons.image, color: Colors.grey),
+            //       ),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
         actions: [
@@ -303,7 +303,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
             onPressed: () async {
               final updatedCategory = {
                 'name': nameController.text.trim(),
-                'image': imageBase64,
+                // 'image': imageBase64,
               };
 
               final response = await http.put(
@@ -357,44 +357,44 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
                   border: UnderlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () async {
-                  final picked = await ImagePicker().pickImage(
-                    source: ImageSource.gallery,
-                    imageQuality: 60,
-                  );
-                  if (picked != null) {
-                    final bytes = await picked.readAsBytes();
-                    setState(() {
-                      _imageBase64 = base64Encode(bytes);
-                    });
-                  }
-                },
-                child: Column(
-                  children: [
-                    const Text(
-                      'Ảnh đại diện',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: _imageBase64.isNotEmpty
-                          ? Image.memory(
-                              base64Decode(_imageBase64),
-                              fit: BoxFit.cover,
-                            )
-                          : const Icon(Icons.image, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
+              // const SizedBox(height: 16),
+              // GestureDetector(
+              //   onTap: () async {
+              //     final picked = await ImagePicker().pickImage(
+              //       source: ImageSource.gallery,
+              //       imageQuality: 60,
+              //     );
+              //     if (picked != null) {
+              //       final bytes = await picked.readAsBytes();
+              //       setState(() {
+              //         _imageBase64 = base64Encode(bytes);
+              //       });
+              //     }
+              //   },
+              //   child: Column(
+              //     children: [
+              //       const Text(
+              //         'Ảnh đại diện',
+              //         style: TextStyle(fontSize: 14, color: Colors.grey),
+              //       ),
+              //       const SizedBox(height: 8),
+              //       Container(
+              //         width: 100,
+              //         height: 100,
+              //         decoration: BoxDecoration(
+              //           border: Border.all(color: Colors.grey.shade300),
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //         child: _imageBase64.isNotEmpty
+              //             ? Image.memory(
+              //                 base64Decode(_imageBase64),
+              //                 fit: BoxFit.cover,
+              //               )
+              //             : const Icon(Icons.image, color: Colors.grey),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -417,7 +417,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
 
               final newCategory = {
                 'name': _nameController.text.trim(),
-                'image': _imageBase64,
+                // 'image': _imageBase64,
               };
 
               final response = await http.post(

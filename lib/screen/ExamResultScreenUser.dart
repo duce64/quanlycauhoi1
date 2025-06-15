@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
+import 'package:flutterquiz/screen/widgets/empty.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -71,7 +73,12 @@ class _UserExamResultScreenState extends State<UserExamResultScreen> {
           : _error != null
               ? Center(
                   child: Text("❌ $_error", style: TextStyle(color: Colors.red)))
-              : ListView.separated(
+              : _results.length==0?
+              EmptyStateWidget(
+                  svgPath: 'assets/empty.svg',
+                  message: 'Không có kết quả thi nào',
+                )
+              :ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _results.length,
                   separatorBuilder: (_, __) =>
@@ -94,7 +101,8 @@ class _UserExamResultScreenState extends State<UserExamResultScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        "Ngày thi: ${item['date'] ?? ''} - Điểm: ${item['score'] ?? '0'}/100",
+                       "Ngày thi: ${formatDate(item['date'] ?? '')} - Điểm: ${item['score'] ?? '0'}/100",
+
                         style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
                       trailing:
@@ -107,4 +115,13 @@ class _UserExamResultScreenState extends State<UserExamResultScreen> {
                 ),
     );
   }
+  // Hàm định dạng ngày
+String formatDate(String isoDate) {
+  try {
+    final dateTime = DateTime.parse(isoDate).toLocal(); // Chuyển về giờ địa phương nếu cần
+    return DateFormat('dd/MM/yyyy').format(dateTime);
+  } catch (e) {
+    return ''; // Trả về rỗng nếu không đúng định dạng
+  }
+}
 }
