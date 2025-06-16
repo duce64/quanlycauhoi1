@@ -68,7 +68,7 @@ class _ViewQuestionsByCategoryScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Câu hỏi của danh mục')),
+      appBar: AppBar(title: Text('Danh sách câu hỏi')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _questions.isEmpty
@@ -119,17 +119,22 @@ class _ViewQuestionsByCategoryScreenState
   }
 
   void _showEditDialog(Question question) {
-    final questionController = TextEditingController(text: question.question);
-    final correctAnswerController =
-        TextEditingController(text: question.correctAnswer);
-    final incorrectControllers = List.generate(
-      3,
-      (i) => TextEditingController(text: question.incorrectAnswers?[i] ?? ''),
-    );
+  final questionController = TextEditingController(text: question.question);
+  final correctAnswerController =
+      TextEditingController(text: question.correctAnswer);
 
-    showDialog(
-      context: context,
-      builder: (context) {
+  final incorrectControllers = (question.incorrectAnswers ?? [])
+      .map((text) => TextEditingController(text: text))
+      .toList();
+
+  if (incorrectControllers.isEmpty) {
+    incorrectControllers.add(TextEditingController());
+  }
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(builder: (context, setState) {
         return AlertDialog(
           title: Text('Sửa câu hỏi'),
           content: SingleChildScrollView(
@@ -140,18 +145,46 @@ class _ViewQuestionsByCategoryScreenState
                   controller: questionController,
                   decoration: InputDecoration(labelText: 'Câu hỏi'),
                   maxLines: null,
+        
                 ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: correctAnswerController,
                   decoration: InputDecoration(labelText: 'Đáp án đúng'),
                 ),
-                ...List.generate(3, (i) {
-                  return TextField(
-                    controller: incorrectControllers[i],
-                    decoration:
-                        InputDecoration(labelText: 'Đáp án sai ${i + 1}'),
+                const SizedBox(height: 12),
+                Text('Đáp án sai:', style: TextStyle(fontWeight: FontWeight.bold)),
+                ...List.generate(incorrectControllers.length, (i) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: incorrectControllers[i],
+                          decoration: InputDecoration(
+                              labelText: 'Đáp án sai ${i + 1}'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            incorrectControllers.removeAt(i);
+                          });
+                        },
+                      )
+                    ],
                   );
                 }),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  icon: Icon(Icons.add),
+                  label: Text("Thêm đáp án sai"),
+                  onPressed: () {
+                    setState(() {
+                      incorrectControllers.add(TextEditingController());
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -165,18 +198,20 @@ class _ViewQuestionsByCategoryScreenState
               onPressed: () async {
                 final updated = Question(
                   id: question.id,
-                  question: questionController.text,
-                  correctAnswer: correctAnswerController.text,
-                  incorrectAnswers:
-                      incorrectControllers.map((c) => c.text.trim()).toList(),
-                  categoryId: null,
-                  idQuestionPackage: null,
+                  question: questionController.text.trim(),
+                  correctAnswer: correctAnswerController.text.trim(),
+                  incorrectAnswers: incorrectControllers
+                      .map((c) => c.text.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList(),
+                  categoryId: question.categoryId,
+                  idQuestionPackage: question.idQuestionPackage,
                 );
 
                 final success = await updateQuestion(updated);
                 if (success) {
                   Navigator.pop(context);
-                  _fetchQuestions(); // làm mới danh sách
+                  _fetchQuestions();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Cập nhật thành công')),
                   );
@@ -189,9 +224,11 @@ class _ViewQuestionsByCategoryScreenState
             ),
           ],
         );
-      },
-    );
-  }
+      });
+    },
+  );
+}
+
 
   Future<bool> updateQuestion(Question question) async {
     final url =

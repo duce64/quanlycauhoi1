@@ -4,6 +4,7 @@ import 'package:flutterquiz/configdomain.dart';
 import 'package:flutterquiz/model/categories.dart';
 import 'package:flutterquiz/model/question_package.dart';
 import 'package:flutterquiz/screen/admin/ViewQuestionsByCategoryScreen.dart';
+import 'package:flutterquiz/screen/admin/importword.dart';
 import 'package:flutterquiz/util/constant.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:http/http.dart' as http;
@@ -383,8 +384,24 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
                                             'categoryId': category.id,
                                             'idQuestionPackage': pkg.idQuestion,
                                           },
-                                        );
+                                        ).then((result) {
+                                          // if (result == true) {
+                                            // Nếu có thay đổi, reload lại danh sách
+                                            _fetchQuestionPackages(category.id);
+                                          // }
+                                        });
                                       }
+  //                                     else if (value == 'import_word') {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => ImportFromWordScreen(
+  //         categoryId: category.id,
+  //         idQuestionPackage: pkg.idQuestion,
+  //       ),
+  //     ),
+  //   );
+  // }
                                       if (value == 'remove') {
                                         final shouldDelete =
                                             await showDialog<bool>(
@@ -464,6 +481,10 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
                                         value: 'add',
                                         child: Text('Thêm câu hỏi'),
                                       ),
+  //                                     const PopupMenuItem(
+  //   value: 'import_word',
+  //   child: Text('Nhập từ Word'),
+  // ),
                                       const PopupMenuItem(
                                         value: 'remove',
                                         child: Text('Xóa bộ câu hỏi'),
@@ -475,22 +496,7 @@ class _ManageQuestionScreenState extends State<ManageQuestionScreen> {
                                       Icons.folder_open_outlined,
                                       color: Colors.grey),
                                   onTap: () {
-                                    // Navigator.pushNamed(
-                                    //   context,
-                                    //   AddQuestionScreens,
-                                    //   arguments: {
-                                    //     'categoryId': category.id,
-                                    //     'idQuestionPackage': pkg.idQuestion,
-                                    //   },
-                                    // );
-                                    // Navigator.pushNamed(
-                                    //   context,
-                                    //   QuestionPackageListScreens,
-                                    //   arguments: {
-                                    //     'categoryId': category.id,
-                                    //     'idQuestionPackage': pkg.idQuestion,
-                                    //   },
-                                    // );
+                                  
                                   },
                                 );
                               }).toList(),

@@ -1,4 +1,3 @@
-// Các import giữ nguyên
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/configdomain.dart';
@@ -28,30 +27,22 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
 
   final questionController = TextEditingController();
   final correctAnswerController = TextEditingController();
-  final incorrect1Controller = TextEditingController();
-  final incorrect2Controller = TextEditingController();
-  final incorrect3Controller = TextEditingController();
+  final List<TextEditingController> incorrectControllers = [];
 
   bool isFormValid() {
     return questionController.text.isNotEmpty &&
         correctAnswerController.text.isNotEmpty &&
-        incorrect1Controller.text.isNotEmpty &&
-        incorrect2Controller.text.isNotEmpty &&
-        incorrect3Controller.text.isNotEmpty;
+        incorrectControllers.any((c) => c.text.isNotEmpty);
   }
 
   @override
   void initState() {
     super.initState();
     fetchExistingQuestions();
-    [
-      questionController,
-      correctAnswerController,
-      incorrect1Controller,
-      incorrect2Controller,
-      incorrect3Controller
-    ].forEach((controller) => controller.addListener(() => setState(() {})));
-    jumpToController.addListener(() => setState(() {}));
+
+    [questionController, correctAnswerController, jumpToController]
+        .forEach((controller) =>
+            controller.addListener(() => setState(() {})));
   }
 
   Future<void> fetchExistingQuestions() async {
@@ -70,22 +61,27 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
     }
   }
 
+  void addIncorrectAnswer({String text = ''}) {
+    final controller = TextEditingController(text: text);
+    controller.addListener(() => setState(() {}));
+    incorrectControllers.add(controller);
+  }
+
   void saveCurrentQuestion() {
     if (!isFormValid()) return;
+
+    final incorrectAnswers =
+        incorrectControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList();
 
     final currentQuestion = Question(
       question: questionController.text,
       correctAnswer: correctAnswerController.text,
-      incorrectAnswers: [
-        incorrect1Controller.text,
-        incorrect2Controller.text,
-        incorrect3Controller.text,
-      ],
+      incorrectAnswers: incorrectAnswers,
       categoryId: widget.categoryId,
       idQuestionPackage: widget.idQuestionPackage,
       isLocal: currentQuestionIndex < questions.length
           ? questions[currentQuestionIndex].isLocal
-          : true, // Mặc định là mới
+          : true,
     );
 
     if (currentQuestionIndex < questions.length) {
@@ -100,9 +96,13 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       final q = questions[currentQuestionIndex];
       questionController.text = q.question ?? '';
       correctAnswerController.text = q.correctAnswer ?? '';
-      incorrect1Controller.text = q.incorrectAnswers![0];
-      incorrect2Controller.text = q.incorrectAnswers![1];
-      incorrect3Controller.text = q.incorrectAnswers![2];
+
+      incorrectControllers.clear();
+      for (var ans in q.incorrectAnswers ?? []) {
+        addIncorrectAnswer(text: ans);
+      }
+
+      if (incorrectControllers.isEmpty) addIncorrectAnswer();
     } else {
       clearFields();
     }
@@ -111,9 +111,8 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
   void clearFields() {
     questionController.clear();
     correctAnswerController.clear();
-    incorrect1Controller.clear();
-    incorrect2Controller.clear();
-    incorrect3Controller.clear();
+    incorrectControllers.clear();
+    addIncorrectAnswer();
   }
 
   void nextQuestion() {
@@ -236,16 +235,12 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                               ),
                               onChanged: (value) {
                                 if (value.isEmpty) return;
-
                                 final index = int.tryParse(value);
                                 if (index == null) {
                                   jumpToController.text = '';
                                   return;
                                 }
-
-                                // Nếu nhập quá số câu thì cắt lại về hợp lệ
                                 if (index > questions.length) {
-                                  // Cắt bớt ký tự cuối
                                   jumpToController.text =
                                       value.substring(0, value.length - 1);
                                   jumpToController.selection =
@@ -256,7 +251,6 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                                   return;
                                 }
 
-                                // Hợp lệ thì nhảy tới câu
                                 saveCurrentQuestion();
                                 setState(() {
                                   currentQuestionIndex = index - 1;
@@ -269,9 +263,9 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                                     index > 0 &&
                                     index <= questions.length) {
                                   setState(() {
-                                    saveCurrentQuestion(); // lưu lại câu hiện tại nếu đang chỉnh
+                                    saveCurrentQuestion();
                                     currentQuestionIndex = index - 1;
-                                    loadQuestion(); // load nội dung câu hỏi mới
+                                    loadQuestion();
                                   });
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -299,19 +293,35 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                     decoration: inputDecoration('Đáp án đúng'),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: incorrect1Controller,
-                    decoration: inputDecoration('Đáp án sai 1'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: incorrect2Controller,
-                    decoration: inputDecoration('Đáp án sai 2'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: incorrect3Controller,
-                    decoration: inputDecoration('Đáp án sai 3'),
+                  ...List.generate(incorrectControllers.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: incorrectControllers[index],
+                              decoration:
+                                  inputDecoration('Đáp án sai ${index + 1}'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                incorrectControllers.removeAt(index);
+                              });
+                            },
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  TextButton.icon(
+                    onPressed: () => setState(() => addIncorrectAnswer()),
+                    icon: const Icon(Icons.add),
+                    label: const Text("Thêm đáp án sai"),
                   ),
                   const SizedBox(height: 32),
                   Wrap(
@@ -353,13 +363,13 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                               Question(
                                 question: '',
                                 correctAnswer: '',
-                                incorrectAnswers: ['', '', ''],
+                                incorrectAnswers: [],
                                 categoryId: widget.categoryId,
                                 idQuestionPackage: widget.idQuestionPackage,
-                                isLocal: true, // <-- đảm bảo đây là câu mới
+                                isLocal: true,
                               ),
                             );
-                            loadQuestion(); // load ngay câu mới trắng
+                            loadQuestion();
                           });
                         },
                         icon: const Icon(Icons.add),

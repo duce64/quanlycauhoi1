@@ -429,18 +429,19 @@ Future<void> showWarningDialog() async {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    currentQuestionText.length > 60
-                        ? currentQuestionText.substring(0, 60) + '...'
-                        : currentQuestionText,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: kTitleColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+  child: Text(
+    currentQuestionText,
+    style: const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: kTitleColor,
+    ),
+    softWrap: true,
+    overflow: TextOverflow.visible, // hoặc bỏ dòng này
+    maxLines: 1, // Cho phép hiển thị tất cả dòng
+  ),
+),
+
                 const SizedBox(width: 8),
                 Container(
                   padding:
@@ -556,54 +557,50 @@ Future<void> showWarningDialog() async {
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            Text('Danh sách câu hỏi:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            // Thêm vào phần cuối Column trong build(), ví dụ trước nút Next
-   Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: SizedBox(
-                  height: 60,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: listQuestion.length,
-                    itemBuilder: (context, index) {
-                      final selected = index == currentIndex;
-                      final hasAnswered = answer.containsKey(index);
-                      Color backgroundColor;
-                      if (selected) {
-                        backgroundColor = Colors.blue;
-                      } else if (hasAnswered) {
-                        backgroundColor = Colors.green;
-                      } else {
-                        backgroundColor = Colors.grey[300]!;
-                      }
+           SizedBox(height: 20),
+Text(
+  'Danh sách câu hỏi:',
+  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+),
+Padding(
+  padding: const EdgeInsets.symmetric(vertical: 12.0),
+  child: Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: List.generate(listQuestion.length, (index) {
+      final selected = index == currentIndex;
+      final hasAnswered = answer.containsKey(index);
+      Color backgroundColor;
+      if (selected) {
+        backgroundColor = Colors.blue;
+      } else if (hasAnswered) {
+        backgroundColor = Colors.green;
+      } else {
+        backgroundColor = Colors.grey[300]!;
+      }
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              currentIndex = index;
-                            });
-                          },
-                          child: CircleAvatar(
-                            radius: 22,
-                            backgroundColor: backgroundColor,
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: selected || hasAnswered ? Colors.white : Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        child: CircleAvatar(
+          radius: 22,
+          backgroundColor: backgroundColor,
+          child: Text(
+            '${index + 1}',
+            style: TextStyle(
+              color: selected || hasAnswered ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }),
+  ),
+),
+
 
           ],
         ),
