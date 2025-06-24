@@ -55,29 +55,49 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
   }
 
   Future<void> exportToPDF(List<Result> results) async {
-    final pdf = pw.Document();
-    final fontData = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
-    final ttf = pw.Font.ttf(fontData);
+  final pdf = pw.Document();
+  final fontData = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+  final ttf = pw.Font.ttf(fontData);
 
-    pdf.addPage(
-      pw.Page(
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text('Báo cáo kết quả: ${widget.title}',
-                style: pw.TextStyle(font: ttf, fontSize: 20)),
-            pw.SizedBox(height: 12),
-            ...results.map((r) => pw.Text(
-                  '${r.username} - ${r.score} điểm - ${r.status} - ${formatDate(r.date)}',
-                  style: pw.TextStyle(font: ttf),
-                )),
-          ],
-        ),
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (context) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Báo cáo kết quả: ${widget.title}',
+              style: pw.TextStyle(font: ttf, fontSize: 20)),
+          pw.SizedBox(height: 12),
+          pw.Table.fromTextArray(
+            cellStyle: pw.TextStyle(font: ttf, fontSize: 10),
+            headerStyle: pw.TextStyle(font: ttf, fontSize: 11, fontWeight: pw.FontWeight.bold),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+            cellAlignment: pw.Alignment.centerLeft,
+            headerAlignment: pw.Alignment.center,
+            columnWidths: {
+              0: const pw.FlexColumnWidth(2),
+              1: const pw.FlexColumnWidth(1.2),
+              2: const pw.FlexColumnWidth(1.5),
+              3: const pw.FlexColumnWidth(1.5),
+            },
+            headers: ['Người thi', 'Điểm', 'Trạng thái', 'Ngày thi'],
+            data: results.map((r) {
+              return [
+                r.username,
+                r.score.toStringAsFixed(1),
+                r.status,
+                formatDate(r.date),
+              ];
+            }).toList(),
+          ),
+        ],
       ),
-    );
+    ),
+  );
 
-    await Printing.layoutPdf(onLayout: (format) => pdf.save());
-  }
+  await Printing.layoutPdf(onLayout: (format) => pdf.save());
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +207,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                                         ),
                                         PieChartSectionData(
                                           value: failed.toDouble(),
-                                          title: '$failed Failed',
+                                          title: '$failed Không đạt',
                                           color: Colors.redAccent,
                                           radius: 60,
                                           titleStyle: const TextStyle(
