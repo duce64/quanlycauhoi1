@@ -47,6 +47,7 @@ class _QuizPageApiState extends State<QuizPageApi> {
 
   late Timer _timer;
   late int _remainingSeconds;
+  bool isDialogShowing = false;
 
   @override
   void initState() {
@@ -74,6 +75,9 @@ class _QuizPageApiState extends State<QuizPageApi> {
   int warningCount = 0;
 
 void showMouseLeaveWarning() {
+    if (!mounted || isDialogShowing) return;
+      isDialogShowing = true;
+
   warningCount++;
   if (!mounted) return;
 
@@ -87,7 +91,8 @@ void showMouseLeaveWarning() {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+             Navigator.of(context).pop();
+            isDialogShowing = false; // Reset sau khi dialog đóng
             if (warningCount >= 5) {
                 Navigator.pushReplacement(
             context,
@@ -128,25 +133,6 @@ Future<void> showWarningDialog() async {
     return;
   }
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("⚠️ Cảnh Báo $warningCount/3"),
-        content: Text("Bạn đã thoát khỏi bài thi lần $warningCount! "
-            "Nếu tiếp tục, bài thi sẽ bị kết thúc."),
-        actions: [
-          TextButton(
-            child: Text("Tôi đã hiểu"),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
 }
 
 

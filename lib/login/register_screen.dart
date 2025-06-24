@@ -52,41 +52,62 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Row(
           children: [
             if (!ResponsiveWidget.isSmallScreen(context))
-              Expanded(
-                child: Container(
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF002856),
-                    image: DecorationImage(
-                      image: AssetImage('assets/pkkq.jpg'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Hero(
-  tag: 'appLogo',
-  child: Image.asset(
-    'assets/logo.png',
-    height: height * 0.15,
+             Expanded(
+  child: Container(
+    height: height,
+    child: Stack(
+      fit: StackFit.expand,
+      children: [
+        // Ảnh nền
+        Image.asset(
+          'assets/pkkq.jpg',
+          fit: BoxFit.cover,
+        ),
+
+        // Lớp phủ mờ
+        Container(
+          color: Colors.black.withOpacity(0.4), // Độ mờ của nền (0.0 - 1.0)
+        ),
+
+        // Nội dung
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Hero(
+              tag: 'appLogo',
+              child: Image.asset(
+                'assets/logo.png',
+                height: height * 0.15,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Phần mềm ôn tập và kiểm tra kiến thức bằng hình thức trắc nghiệm của trung đoàn 64',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1, 1),
+                      blurRadius: 4,
+                      color: Colors.black54,
+                    )
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
   ),
 ),
 
-                      const SizedBox(height: 20),
-                      Text(
-                        'HỆ THỐNG QUẢN LÝ CÂU HỎI',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             Expanded(
               child: Center(
                 child: Container(
