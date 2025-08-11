@@ -26,18 +26,23 @@ class _QuizFinishPageState extends State<QuizFinishPage> {
   int score = 0;
   final nameController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    widget.answer?.forEach((key, value) {
-      if (widget.listQuestion?[key].correctAnswer == value) {
-        correct++;
-        score += 10;
-      } else {
-        incorrect++;
-      }
-    });
+@override
+void initState() {
+  super.initState();
+  widget.answer?.forEach((key, value) {
+    if (widget.listQuestion?[key].correctAnswer == value) {
+      correct++;
+    } else {
+      incorrect++;
+    }
+  });
+
+  int total = widget.listQuestion?.length ?? 0;
+  if (total > 0) {
+    score = ((correct / total) * 100).round();
   }
+}
+
 
   @override
   void dispose() {

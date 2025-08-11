@@ -262,11 +262,12 @@ Future<void> showWarningDialog() async {
       name = decoded['name'] ?? 'Không rõ';
       userId = decoded['userId'] ?? '';
     }
-
+    int correct=0;
     int score = 0;
     for (int i = 0; i < listQuestion.length; i++) {
       if (answer[i] == listQuestion[i].correctAnswer) {
         score += (100 ~/ listQuestion.length);
+        correct++;
       }
     }
 
@@ -286,6 +287,7 @@ Future<void> showWarningDialog() async {
           "userId": userId,
           "isTest": widget.isTest,
           "testId": widget.idTest,
+          "numberQuestion":"${correct}/${listQuestion.length}"
         },
         options: Options(headers: {
           'Authorization': 'Bearer $token',

@@ -79,14 +79,16 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               1: const pw.FlexColumnWidth(1.2),
               2: const pw.FlexColumnWidth(1.5),
               3: const pw.FlexColumnWidth(1.5),
+              4:const pw.FlexColumnWidth(1.5),
             },
-            headers: ['Người thi', 'Điểm', 'Trạng thái', 'Ngày thi'],
+            headers: ['Người thi', 'Điểm', 'Trạng thái', 'Ngày thi','Số câu đúng'],
             data: results.map((r) {
               return [
                 r.username,
                 r.score.toStringAsFixed(1),
                 r.status,
                 formatDate(r.date),
+                r.numberQuestion
               ];
             }).toList(),
           ),
@@ -312,7 +314,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                                 leading: const Icon(Icons.person),
                                 title: Text(r.username),
                                 subtitle:
-                                    Text('Điểm: ${r.score} - ${r.status}'),
+                                  r.status=='Failed'? Text('Điểm: ${r.score} - Không đạt - Số câu đúng ${r.numberQuestion}'):Text('Điểm: ${r.score} - Đạt - Số câu đúng ${r.numberQuestion}'),
                                 trailing: Text(
                                   formatDate(r.date),
                                   style: const TextStyle(fontSize: 12),
@@ -340,12 +342,14 @@ class Result {
   final double score;
   final String status;
   final DateTime date;
+  final String numberQuestion;
 
   Result({
     required this.username,
     required this.score,
     required this.status,
     required this.date,
+    this.numberQuestion=''
   });
 
   factory Result.fromJson(Map<String, dynamic> json) {
@@ -354,6 +358,7 @@ class Result {
       score: (json['score'] as num).toDouble(),
       status: json['status'],
       date: DateTime.parse(json['date']),
+      numberQuestion: json['numberQuestion']
     );
   }
 }

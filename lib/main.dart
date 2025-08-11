@@ -6,7 +6,9 @@ import 'package:flutterquiz/util/router.dart';
 import 'package:flutterquiz/util/router_path.dart';
 import 'package:provider/provider.dart';
 
-void main() {runApp(
+void main() {
+  
+  runApp(
     MultiProvider(providers: [
       ChangeNotifierProvider(
         create: (BuildContext context) => QuestionProvider() ,

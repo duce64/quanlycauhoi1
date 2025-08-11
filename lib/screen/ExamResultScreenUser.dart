@@ -101,7 +101,7 @@ class _UserExamResultScreenState extends State<UserExamResultScreen> {
                         ),
                       ),
                       subtitle: Text(
-                       "Ngày thi: ${formatDate(item['date'] ?? '')} - Điểm: ${item['score'] ?? '0'}/100",
+                       "Ngày thi: ${formatDate(item['date'] ?? '')} - Điểm: ${item['score'] ?? '0'}/100 - Câu đúng:${item['numberQuestion']}" ,
 
                         style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
